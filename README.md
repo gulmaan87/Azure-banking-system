@@ -15,65 +15,63 @@ This project provisions a production-grade infrastructure distributed across two
 
 ```mermaid
 flowchart TB
-    subgraph AzureCloud["☁️ Microsoft Azure Cloud"]
+    %% --- Custom Styles ---
+    classDef azureCloud fill:#f8f9fa,stroke:#0078D4,stroke-width:2px,stroke-dasharray: 5 5,color:#000000
+    classDef region fill:#ffffff,stroke:#0078D4,stroke-width:2px,color:#000000,rx:8,ry:8
+    classDef vnet fill:#e1f0fa,stroke:#0078D4,stroke-width:2px,color:#002050,rx:5,ry:5
+    classDef nsg fill:#fdf6e3,stroke:#d83b01,stroke-width:2px,color:#000000,rx:5,ry:5
+    classDef vm fill:#0078D4,stroke:#005a9e,stroke-width:2px,color:#ffffff,rx:10,ry:10
+    classDef storage fill:#8661C5,stroke:#5c2d91,stroke-width:2px,color:#ffffff,rx:10,ry:10
+
+    subgraph AzureCloud["☁️ Microsoft Azure Global Backbone"]
         direction LR
 
         %% REGION 1
-        subgraph Region1["📍 Region 1: East Asia (Primary)"]
+        subgraph Region1["📍 East Asia (Primary Region)"]
             direction TB
-            VNet1["🌐 VNet 1: 10.0.0.0/16"]
-            NSG1["🛡️ Banking NSG Rules<br/>(Deny All Inbound, Allow RDP/ICMP)"]
+            VNet1["🌐 VNet 1 (10.0.0.0/16)"]:::vnet
+            NSG1["🛡️ Banking NSG<br/>(Deny All Inbound)"]:::nsg
             
-            subgraph Subnets1["Network Segments"]
+            subgraph Subnets1["Internal Network Segments"]
                 direction TB
-                subgraph S1A["Subnet: accounts (10.0.1.0/24)"]
-                    VM1A["💻 VM: accounts-1<br/>Standard_B2ats_v2"]
-                end
-                subgraph S1B["Subnet: payments (10.0.2.0/24)"]
-                    VM1B["💻 VM: payments-1<br/>Standard_B2ats_v2"]
-                end
-                subgraph S1C["Subnet: customer (10.0.3.0/24)"]
-                    VM1C["💻 VM: customer-1<br/>Standard_B2ats_v2"]
-                end
+                VM1A["💻 accounts-1<br/>(10.0.1.x)"]:::vm
+                VM1B["💻 payments-1<br/>(10.0.2.x)"]:::vm
+                VM1C["💻 customer-1<br/>(10.0.3.x)"]:::vm
             end
             
-            Storage["💾 Storage Account<br/>gulmaanbankingdevr1 (LRS)"]
+            Storage["💾 Diagnostic Storage"]:::storage
 
             VNet1 --> NSG1
-            NSG1 --> S1A
-            NSG1 --> S1B
-            NSG1 --> S1C
+            NSG1 --> VM1A
+            NSG1 --> VM1B
+            NSG1 --> VM1C
             VNet1 -.-> Storage
         end
 
         %% REGION 2
-        subgraph Region2["📍 Region 2: Southeast Asia (Failover / Scaling)"]
+        subgraph Region2["📍 Southeast Asia (Disaster Recovery)"]
             direction TB
-            VNet2["🌐 VNet 2: 10.1.0.0/16"]
-            NSG2["🛡️ Banking NSG Rules<br/>(Deny All Inbound, Allow RDP/ICMP)"]
+            VNet2["🌐 VNet 2 (10.1.0.0/16)"]:::vnet
+            NSG2["🛡️ Banking NSG<br/>(Deny All Inbound)"]:::nsg
             
-            subgraph Subnets2["Network Segments"]
+            subgraph Subnets2["Internal Network Segments"]
                 direction TB
-                subgraph S2A["Subnet: loans (10.1.1.0/24)"]
-                    VM2A["💻 VM: loans-1<br/>Standard_B2ats_v2"]
-                end
-                subgraph S2B["Subnet: risk (10.1.2.0/24)"]
-                    VM2B["💻 VM: risk-1<br/>Standard_B2ats_v2"]
-                end
-                subgraph S2C["Subnet: itops (10.1.3.0/24)"]
-                    VM2C["💻 VM: itops-1<br/>Standard_B2ats_v2"]
-                end
+                VM2A["💻 loans-1<br/>(10.1.1.x)"]:::vm
+                VM2B["💻 risk-1<br/>(10.1.2.x)"]:::vm
+                VM2C["💻 itops-1<br/>(10.1.3.x)"]:::vm
             end
 
             VNet2 --> NSG2
-            NSG2 --> S2A
-            NSG2 --> S2B
-            NSG2 --> S2C
+            NSG2 --> VM2A
+            NSG2 --> VM2B
+            NSG2 --> VM2C
         end
 
-        %% PEERING
-        VNet1 <==>|"Encrypted VNet Peering<br/>(peer-region1-to-region2)"| VNet2
+        VNet1 <==>|"🔒 Encrypted VNet Peering"| VNet2
     end
+    
+    class AzureCloud azureCloud
+    class Region1,Region2 region
 ```
 
 ### Key Design Principles:
