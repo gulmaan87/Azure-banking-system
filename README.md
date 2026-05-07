@@ -13,6 +13,46 @@ A highly secure, multi-region, and modular cloud infrastructure deployed on Micr
 
 This project provisions a production-grade infrastructure distributed across two Azure regions (`East Asia` and `Southeast Asia`), leveraging a Hub-and-Spoke-like isolated virtual network design. 
 
+```mermaid
+flowchart TB
+    subgraph AzureCloud["☁️ Microsoft Azure"]
+        direction LR
+
+        subgraph Region1["📍 Region 1: East Asia"]
+            direction TB
+            VNet1["🌐 Virtual Network 1"]
+            NSG1["🛡️ Shared NSG"]
+            
+            subgraph Subnets1["Isolated Subnets"]
+                direction LR
+                VM1["💻 Windows VMs"]
+            end
+            
+            Storage["💾 Diagnostic Storage"]
+
+            VNet1 --> NSG1
+            NSG1 --> Subnets1
+            VNet1 -.-> Storage
+        end
+
+        subgraph Region2["📍 Region 2: Southeast Asia"]
+            direction TB
+            VNet2["🌐 Virtual Network 2"]
+            NSG2["🛡️ Shared NSG"]
+            
+            subgraph Subnets2["Isolated Subnets"]
+                direction LR
+                VM2["💻 Windows VMs"]
+            end
+
+            VNet2 --> NSG2
+            NSG2 --> Subnets2
+        end
+
+        VNet1 <==>|"Encrypted VNet Peering"| VNet2
+    end
+```
+
 ### Key Design Principles:
 - **Multi-Region Redundancy**: Workloads are distributed across two distinct geographical regions to ensure high availability.
 - **VNet Peering**: Secure, backbone network connectivity is established between the two regional Virtual Networks.
