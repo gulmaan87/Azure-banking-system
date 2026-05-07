@@ -15,41 +15,64 @@ This project provisions a production-grade infrastructure distributed across two
 
 ```mermaid
 flowchart TB
-    subgraph AzureCloud["☁️ Microsoft Azure"]
+    subgraph AzureCloud["☁️ Microsoft Azure Cloud"]
         direction LR
 
-        subgraph Region1["📍 Region 1: East Asia"]
+        %% REGION 1
+        subgraph Region1["📍 Region 1: East Asia (Primary)"]
             direction TB
-            VNet1["🌐 Virtual Network 1"]
-            NSG1["🛡️ Shared NSG"]
+            VNet1["🌐 VNet 1: 10.0.0.0/16"]
+            NSG1["🛡️ Banking NSG Rules<br/>(Deny All Inbound, Allow RDP/ICMP)"]
             
-            subgraph Subnets1["Isolated Subnets"]
-                direction LR
-                VM1["💻 Windows VMs"]
+            subgraph Subnets1["Network Segments"]
+                direction TB
+                subgraph S1A["Subnet: accounts (10.0.1.0/24)"]
+                    VM1A["💻 VM: accounts-1<br/>Standard_B2ats_v2"]
+                end
+                subgraph S1B["Subnet: payments (10.0.2.0/24)"]
+                    VM1B["💻 VM: payments-1<br/>Standard_B2ats_v2"]
+                end
+                subgraph S1C["Subnet: customer (10.0.3.0/24)"]
+                    VM1C["💻 VM: customer-1<br/>Standard_B2ats_v2"]
+                end
             end
             
-            Storage["💾 Diagnostic Storage"]
+            Storage["💾 Storage Account<br/>gulmaanbankingdevr1 (LRS)"]
 
             VNet1 --> NSG1
-            NSG1 --> Subnets1
+            NSG1 --> S1A
+            NSG1 --> S1B
+            NSG1 --> S1C
             VNet1 -.-> Storage
         end
 
-        subgraph Region2["📍 Region 2: Southeast Asia"]
+        %% REGION 2
+        subgraph Region2["📍 Region 2: Southeast Asia (Failover / Scaling)"]
             direction TB
-            VNet2["🌐 Virtual Network 2"]
-            NSG2["🛡️ Shared NSG"]
+            VNet2["🌐 VNet 2: 10.1.0.0/16"]
+            NSG2["🛡️ Banking NSG Rules<br/>(Deny All Inbound, Allow RDP/ICMP)"]
             
-            subgraph Subnets2["Isolated Subnets"]
-                direction LR
-                VM2["💻 Windows VMs"]
+            subgraph Subnets2["Network Segments"]
+                direction TB
+                subgraph S2A["Subnet: loans (10.1.1.0/24)"]
+                    VM2A["💻 VM: loans-1<br/>Standard_B2ats_v2"]
+                end
+                subgraph S2B["Subnet: risk (10.1.2.0/24)"]
+                    VM2B["💻 VM: risk-1<br/>Standard_B2ats_v2"]
+                end
+                subgraph S2C["Subnet: itops (10.1.3.0/24)"]
+                    VM2C["💻 VM: itops-1<br/>Standard_B2ats_v2"]
+                end
             end
 
             VNet2 --> NSG2
-            NSG2 --> Subnets2
+            NSG2 --> S2A
+            NSG2 --> S2B
+            NSG2 --> S2C
         end
 
-        VNet1 <==>|"Encrypted VNet Peering"| VNet2
+        %% PEERING
+        VNet1 <==>|"Encrypted VNet Peering<br/>(peer-region1-to-region2)"| VNet2
     end
 ```
 
