@@ -96,21 +96,25 @@ module "vnet2" {
 ###############################################################################
 
 resource "azurerm_virtual_network_peering" "vnet1_to_vnet2" {
-  name                      = "peer-region1-to-region2"
-  resource_group_name       = azurerm_resource_group.banking1.name
-  virtual_network_name      = module.vnet1.vnet_name
-  remote_virtual_network_id = module.vnet2.vnet_id
+  name                         = "peer-region1-to-region2"
+  resource_group_name          = azurerm_resource_group.banking1.name
+  virtual_network_name         = module.vnet1.vnet_name
+  remote_virtual_network_id    = module.vnet2.vnet_id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
+
+  depends_on = [module.subnets1, module.subnets2]
 }
 
 resource "azurerm_virtual_network_peering" "vnet2_to_vnet1" {
-  name                      = "peer-region2-to-region1"
-  resource_group_name       = azurerm_resource_group.banking2.name
-  virtual_network_name      = module.vnet2.vnet_name
-  remote_virtual_network_id = module.vnet1.vnet_id
+  name                         = "peer-region2-to-region1"
+  resource_group_name          = azurerm_resource_group.banking2.name
+  virtual_network_name         = module.vnet2.vnet_name
+  remote_virtual_network_id    = module.vnet1.vnet_id
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
+
+  depends_on = [module.subnets1, module.subnets2]
 }
 
 ###############################################################################
@@ -214,4 +218,24 @@ module "storage" {
   account_tier        = var.storage_account_tier
   replication_type    = var.storage_replication_type
   tags                = local.common_tags
+}
+
+###############################################################################
+# RBAC - Role Assignments
+###############################################################################
+
+# Grant Region 1 VMs 'Storage Blob Data Contributor' to the Shared Storage Account
+resource "azurerm_role_assignment" "vms1_storage" {
+  for_each             = module.vms1.vm_principal_ids
+  scope                = module.storage.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = each.value
+}
+
+# Grant Region 2 VMs 'Storage Blob Data Contributor' to the Shared Storage Account
+resource "azurerm_role_assignment" "vms2_storage" {
+  for_each             = module.vms2.vm_principal_ids
+  scope                = module.storage.storage_account_id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = each.value
 }

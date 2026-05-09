@@ -17,3 +17,11 @@ output "vm_private_ips" {
     k => nic.private_ip_address
   }
 }
+
+output "vm_principal_ids" {
+  description = "Map of vm_key → SystemAssigned Principal ID."
+  value = {
+    for k, vm in azurerm_linux_virtual_machine.this :
+    k => vm.identity[0].principal_id
+  }
+}

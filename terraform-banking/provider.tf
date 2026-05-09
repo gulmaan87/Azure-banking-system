@@ -14,8 +14,17 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.6"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 2.48"
+    }
   }
 }
+
+provider "azuread" {
+  # Azure Active Directory provider configuration
+}
+
 
 provider "azurerm" {
   features {

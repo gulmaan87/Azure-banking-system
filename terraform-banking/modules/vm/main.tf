@@ -50,6 +50,10 @@ resource "azurerm_linux_virtual_machine" "this" {
   secure_boot_enabled = true
   vtpm_enabled        = true
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = each.value.disk_type
