@@ -1,11 +1,16 @@
 # 🏦 Azure Banking System Infrastructure
 
-![Terraform](https://img.shields.io/badge/Terraform-1.5+-623CE4.svg?style=for-the-badge&logo=terraform)
-![Azure](https://img.shields.io/badge/Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white)
-![Security](https://img.shields.io/badge/Security-Strict-success?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
+<div align="center">
+  <img src="https://img.shields.io/badge/Terraform-1.5+-623CE4.svg?style=for-the-badge&logo=terraform" alt="Terraform">
+  <img src="https://img.shields.io/badge/Azure-0089D6?style=for-the-badge&logo=microsoft-azure&logoColor=white" alt="Azure">
+  <img src="https://img.shields.io/badge/Security-Strict-success?style=for-the-badge" alt="Security">
+  <img src="https://img.shields.io/badge/Compliance-Azure_Policy-blue?style=for-the-badge" alt="Compliance">
+  <img src="https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge" alt="Status">
+</div>
 
-A highly secure, multi-region, and modular cloud infrastructure deployed on Microsoft Azure using Terraform. Designed specifically for banking and financial applications where security, high availability, and strict access controls are paramount.
+<br>
+
+A highly secure, multi-region, and modular cloud infrastructure deployed on Microsoft Azure using Terraform. Designed specifically for banking and financial applications where security, high availability, compliance, and strict access controls are paramount.
 
 ---
 
@@ -74,22 +79,22 @@ flowchart TB
     class Region1,Region2 region
 ```
 
-### Key Design Principles:
+### Key Design Principles
 - **Multi-Region Redundancy**: Workloads are distributed across two distinct geographical regions to ensure high availability.
 - **VNet Peering**: Secure, backbone network connectivity is established between the two regional Virtual Networks.
 - **Zero Public IPs**: Virtual machines are entirely isolated from the public internet to prevent external attack vectors.
-- **Granular NSG Policies**: Strict Network Security Groups control internal traffic flow, permitting only essential protocols (e.g., restricted RDP, ICMP) via secure bastions/jump-boxes.
-- **Resource Optimization**: Architected to operate efficiently within strict Azure vCPU quota constraints (utilizing `Standard_B2ats_v2` burstable instances).
+- **Granular NSG Policies**: Strict Network Security Groups control internal traffic flow, permitting only essential protocols via secure bastions/jump-boxes.
+- **Resource Optimization**: Architected to operate efficiently within strict Azure vCPU quota constraints utilizing `Standard_B2ats_v2` burstable instances.
 
 ---
 
 ## ✨ Features
 
 - **Modular Architecture**: Built using highly reusable Terraform modules (`vnet`, `subnet`, `nsg`, `vm`, `storage`).
-- **Standardized Naming Convention**: Adheres to a strict `[prefix]-banking-[resource]-[env]` naming strategy for perfect resource tracking.
+- **Identity & Access Management (RBAC)**: Enforces least privilege using Azure Active Directory, establishing custom roles for *Bank Administrators*, *Security Auditors*, *Application Developers*, and *Data Engineers*.
+- **Governance & Compliance**: Employs **Azure Policy** to enforce organizational standards, such as prohibiting public IPs, mandating specific tagging schemas, and restricting deployments to approved geographic regions.
 - **Automated Deployments**: Infrastructure as Code (IaC) ensures repeatable, error-free environments.
-- **Secure Storage**: Includes a centralized storage account configured for secure logging and diagnostics.
-- **Scalable Design**: Easily add more VMs or Subnets without refactoring the core logic.
+- **Secure Storage**: Includes a centralized storage account configured for secure logging and diagnostics with forced HTTPS transfer.
 
 ---
 
@@ -105,6 +110,8 @@ flowchart TB
  ┃ ┃ ┣ 📂 vm                # Windows Server VMs
  ┃ ┃ ┗ 📂 vnet              # Virtual Networks
  ┃ ┣ 📜 main.tf             # Core orchestration & module calling
+ ┃ ┣ 📜 policy.tf           # Azure Policies for compliance enforcement
+ ┃ ┣ 📜 rbac.tf             # Role-Based Access Control definitions
  ┃ ┣ 📜 variables.tf        # Input variable definitions
  ┃ ┣ 📜 outputs.tf          # Exported infrastructure values
  ┃ ┣ 📜 provider.tf         # Azure provider configuration
@@ -139,7 +146,7 @@ terraform init
 ```bash
 terraform plan
 ```
-*Note: You will be prompted to enter your secure administrator password for the virtual machines.*
+> *Note: You will be prompted to enter your secure administrator password for the virtual machines.*
 
 **4. Apply the Infrastructure**
 ```bash
@@ -153,12 +160,27 @@ terraform destroy
 
 ---
 
-## 🔒 Security Posture
+## 🔒 Security Posture & Compliance
 
-This environment is built with a "Deny-by-Default" mindset:
+This environment is built with a **"Deny-by-Default"** mindset and rigorous regulatory compliance frameworks:
+
+### Network Security
 - **No Inbound Internet**: NSGs drop all incoming traffic from `Internet` by default.
 - **Internal Routing Only**: All inter-region traffic flows through the encrypted Microsoft backbone via VNet Peering.
-- **Secrets Management**: Admin credentials are never hardcoded and must be passed via secure `.tfvars` or CLI during apply.
+
+### Azure Policy Enforcements
+1. **Deny Public IPs**: Blocks creation of any public-facing network interfaces to prevent exposure.
+2. **Mandatory Tagging**: Ensures all resources are properly tagged (e.g., `Owner`, `Environment`, `CostCenter`) for auditing and billing attribution.
+3. **Location Restrictions**: Hard-limits resource deployments exclusively to `eastasia` and `southeastasia`.
+4. **Secure Transit**: Requires encrypted (HTTPS) transit for all diagnostic storage accounts.
+5. **Identity Auditing**: Monitors and audits VMs that lack a SystemAssigned Managed Identity.
+
+### Role-Based Access Control
+The infrastructure implements strict segregation of duties via Entra ID (Azure AD) Groups:
+- 🛡️ **Bank Administrators**: Full infrastructure management (Contributor).
+- 🔎 **Security Auditors**: Read-only oversight (Reader).
+- 💻 **Application Developers**: Application lifecycle and compute management (Virtual Machine Contributor).
+- 💾 **Data Engineers**: Data ingestion and database storage (Storage Blob Data Contributor).
 
 ---
 
