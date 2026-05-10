@@ -38,19 +38,19 @@ flowchart TB
     end
 
     subgraph AzureCloud["☁️ Microsoft Azure Global Backbone"]
-        direction TB
+        direction LR
 
         %% REGION 1
         subgraph Region1["📍 East Asia (Primary Region)"]
             direction TB
             VNet1["🌐 VNet 1 (10.0.0.0/16)"]:::vnet
-            NSG1["🛡️ Banking NSG<br/>(Deny All Inbound)"]:::nsg
+            NSG1["🛡️ Banking NSG (Deny All Inbound)"]:::nsg
             
             subgraph Subnets1["Internal Network Segments"]
-                direction LR
-                VM1A["💻 accounts-1<br/>(10.0.1.x)"]:::vm
-                VM1B["💻 payments-1<br/>(10.0.2.x)"]:::vm
-                VM1C["💻 customer-1<br/>(10.0.3.x)"]:::vm
+                direction TB
+                VM1A["💻 accounts-1 (10.0.1.x)"]:::vm
+                VM1B["💻 payments-1 (10.0.2.x)"]:::vm
+                VM1C["💻 customer-1 (10.0.3.x)"]:::vm
             end
             
             Storage["💾 Diagnostic Storage"]:::storage
@@ -64,13 +64,13 @@ flowchart TB
         subgraph Region2["📍 Southeast Asia (Disaster Recovery)"]
             direction TB
             VNet2["🌐 VNet 2 (10.1.0.0/16)"]:::vnet
-            NSG2["🛡️ Banking NSG<br/>(Deny All Inbound)"]:::nsg
+            NSG2["🛡️ Banking NSG (Deny All Inbound)"]:::nsg
             
             subgraph Subnets2["Internal Network Segments"]
-                direction LR
-                VM2A["💻 loans-1<br/>(10.1.1.x)"]:::vm
-                VM2B["💻 risk-1<br/>(10.1.2.x)"]:::vm
-                VM2C["💻 itops-1<br/>(10.1.3.x)"]:::vm
+                direction TB
+                VM2A["💻 loans-1 (10.1.1.x)"]:::vm
+                VM2B["💻 risk-1 (10.1.2.x)"]:::vm
+                VM2C["💻 itops-1 (10.1.3.x)"]:::vm
             end
 
             VNet2 --> NSG2
