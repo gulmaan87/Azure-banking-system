@@ -21,15 +21,24 @@ This project provisions a production-grade infrastructure distributed across two
 ```mermaid
 flowchart TB
     %% --- Custom Styles ---
-    classDef azureCloud fill:#f8f9fa,stroke:#0078D4,stroke-width:2px,stroke-dasharray: 5 5,color:#000000
-    classDef region fill:#ffffff,stroke:#0078D4,stroke-width:2px,color:#000000,rx:8,ry:8
-    classDef vnet fill:#e1f0fa,stroke:#0078D4,stroke-width:2px,color:#002050,rx:5,ry:5
-    classDef nsg fill:#fdf6e3,stroke:#d83b01,stroke-width:2px,color:#000000,rx:5,ry:5
-    classDef vm fill:#0078D4,stroke:#005a9e,stroke-width:2px,color:#ffffff,rx:10,ry:10
-    classDef storage fill:#8661C5,stroke:#5c2d91,stroke-width:2px,color:#ffffff,rx:10,ry:10
+    classDef identity fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc,rx:8,ry:8
+    classDef policy fill:#450a0a,stroke:#f87171,stroke-width:2px,color:#f8fafc,rx:8,ry:8
+    classDef azureCloud fill:#f8fafc,stroke:#0284c7,stroke-width:2px,stroke-dasharray: 5 5,color:#0f172a
+    classDef region fill:#ffffff,stroke:#0ea5e9,stroke-width:2px,color:#0f172a,rx:8,ry:8
+    classDef vnet fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a,rx:5,ry:5
+    classDef subnet fill:#f0f9ff,stroke:#7dd3fc,stroke-width:1px,color:#0f172a,stroke-dasharray: 3 3,rx:5,ry:5
+    classDef nsg fill:#fef2f2,stroke:#ef4444,stroke-width:2px,color:#7f1d1d,rx:5,ry:5
+    classDef vm fill:#0369a1,stroke:#0284c7,stroke-width:2px,color:#ffffff,rx:10,ry:10
+    classDef storage fill:#581c87,stroke:#7e22ce,stroke-width:2px,color:#ffffff,rx:10,ry:10
+
+    subgraph Governance["🏛️ Governance & Identity"]
+        direction LR
+        RBAC["🔐 Entra ID (RBAC)<br/><small>Bank Admins • Sec Auditors<br>App Devs • Data Engineers</small>"]:::identity
+        Policy["📜 Azure Policy<br/><small>Deny Pub IP • Enforce Tags<br>Location Limit • Require HTTPS</small>"]:::policy
+    end
 
     subgraph AzureCloud["☁️ Microsoft Azure Global Backbone"]
-        direction LR
+        direction TB
 
         %% REGION 1
         subgraph Region1["📍 East Asia (Primary Region)"]
@@ -38,7 +47,7 @@ flowchart TB
             NSG1["🛡️ Banking NSG<br/>(Deny All Inbound)"]:::nsg
             
             subgraph Subnets1["Internal Network Segments"]
-                direction TB
+                direction LR
                 VM1A["💻 accounts-1<br/>(10.0.1.x)"]:::vm
                 VM1B["💻 payments-1<br/>(10.0.2.x)"]:::vm
                 VM1C["💻 customer-1<br/>(10.0.3.x)"]:::vm
@@ -47,9 +56,7 @@ flowchart TB
             Storage["💾 Diagnostic Storage"]:::storage
 
             VNet1 --> NSG1
-            NSG1 --> VM1A
-            NSG1 --> VM1B
-            NSG1 --> VM1C
+            NSG1 --> Subnets1
             VNet1 -.-> Storage
         end
 
@@ -60,23 +67,24 @@ flowchart TB
             NSG2["🛡️ Banking NSG<br/>(Deny All Inbound)"]:::nsg
             
             subgraph Subnets2["Internal Network Segments"]
-                direction TB
+                direction LR
                 VM2A["💻 loans-1<br/>(10.1.1.x)"]:::vm
                 VM2B["💻 risk-1<br/>(10.1.2.x)"]:::vm
                 VM2C["💻 itops-1<br/>(10.1.3.x)"]:::vm
             end
 
             VNet2 --> NSG2
-            NSG2 --> VM2A
-            NSG2 --> VM2B
-            NSG2 --> VM2C
+            NSG2 --> Subnets2
         end
 
-        VNet1 <==>|"🔒 Encrypted VNet Peering"| VNet2
+        Region1 <==>|"🔒 Encrypted VNet Peering"| Region2
     end
+    
+    Governance -.->|"Applies Policies & Controls"| AzureCloud
     
     class AzureCloud azureCloud
     class Region1,Region2 region
+    class Subnets1,Subnets2 subnet
 ```
 
 ### Key Design Principles
