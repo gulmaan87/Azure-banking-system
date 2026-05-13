@@ -25,3 +25,11 @@ output "vm_principal_ids" {
     k => vm.identity[0].principal_id
   }
 }
+
+output "nic_ids" {
+  description = "Map of vm_key → NIC resource ID."
+  value = {
+    for k, nic in azurerm_network_interface.this :
+    k => nic.id
+  }
+}
