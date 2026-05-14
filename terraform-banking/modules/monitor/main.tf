@@ -1,7 +1,7 @@
 ###############################################################################
 # modules/monitor/main.tf – Log Analytics Workspace
 #
-# LAW naming: gulmaan-banking-law-dev
+# LAW naming: mohdg-banking-law-dev
 ###############################################################################
 
 resource "azurerm_log_analytics_workspace" "this" {

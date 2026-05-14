@@ -2,7 +2,7 @@
 # modules/storage/main.tf – Shared Storage Account
 #
 # Name constraints: 3-24 chars, lowercase alphanumeric only
-# "gulmaanbankingdev" = 17 chars – valid
+# "mohdgbankingdev" = 15 chars – valid
 ###############################################################################
 
 resource "azurerm_storage_account" "this" {

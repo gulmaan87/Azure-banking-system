@@ -1,7 +1,7 @@
 ###############################################################################
 # modules/keyvault/main.tf – Azure Key Vault with access policy
 #
-# KV name: gulmaan-banking-kv-dev  (max 24 chars – valid at 22)
+# KV name: mohdg-banking-kv-dev  (max 24 chars – valid at 20)
 ###############################################################################
 
 resource "azurerm_key_vault" "this" {

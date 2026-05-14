@@ -39,7 +39,7 @@ resource "azurerm_route_table" "force_firewall" {
   name                          = "${local.name_prefix}-rt-firewall-${var.env}"
   location                      = azurerm_resource_group.banking1.location
   resource_group_name           = azurerm_resource_group.banking1.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
   tags                          = local.common_tags
 
   route {

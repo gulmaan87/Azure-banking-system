@@ -7,7 +7,7 @@
 variable "prefix" {
   description = "Project owner / team prefix used in all resource names."
   type        = string
-  default     = "gulmaan"
+  default     = "mohdg-gulmaan"
 }
 
 variable "project" {
@@ -159,7 +159,7 @@ variable "vm_admin_password" {
   description = "Local administrator password – override with Key Vault reference in production."
   type        = string
   sensitive   = true
-  default     = "Gulmaan@5004"
+  default     = "MohdgGulmaan@5004"
 }
 
 variable "os_disk_size_gb" {
@@ -216,7 +216,7 @@ variable "tags" {
   description = "Common tags applied to every resource."
   type        = map(string)
   default = {
-    Owner         = "gulmaan"
+    Owner         = "mohdg-gulmaan"
     Project       = "banking"
     Environment   = "dev"
     ManagedBy     = "terraform"

@@ -75,20 +75,12 @@ locals {
         vm_size     = local.subnet_vm_sizes1_ext[subnet_name]
         disk_type   = "Standard_LRS"
       }
-    }
+    } if contains(["corebank", "management", "database"], subnet_name)
   ]...)
 
-  vm_map2_ext = merge([
-    for subnet_name, cidr in var.subnets_region2_extended : {
-      for idx in range(1, var.vm_count_per_subnet + 1) :
-      "${subnet_name}-${idx}" => {
-        subnet_name = subnet_name
-        vm_index    = idx
-        vm_size     = local.subnet_vm_sizes2_ext[subnet_name]
-        disk_type   = "Standard_LRS"
-      }
-    }
-  ]...)
+  # QUOTA: compliance VM excluded; all 6 Region 2 cores used by vms2 (itops, loans, risk)
+  # vm_map2_ext is intentionally kept empty to respect southeastasia vCPU quota (6/6).
+  vm_map2_ext = {}
 }
 
 module "vms_extended_1" {
@@ -111,6 +103,8 @@ module "vms_extended_1" {
 module "vms_extended_2" {
   source = "./modules/vm"
 
+  # QUOTA: Region 2 (southeastasia) 6/6 vCPU used by vms2 (itops, loans, risk)
+  # compliance-1 VM disabled; subnet exists for network segmentation only.
   vm_map              = local.vm_map2_ext
   name_prefix         = "${local.name_prefix}-ext-r2"
   env                 = var.env

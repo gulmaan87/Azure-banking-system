@@ -144,14 +144,56 @@ resource "azurerm_network_interface_security_group_association" "corebank" {
 
 
 # 5. Executive Tier NSG
+# Executives can ping EVERYONE (outbound unrestricted ICMP).
+# Only Managers can ping back to Executives (inbound restricted).
 resource "azurerm_network_security_group" "executive" {
   name                = "${local.name_prefix}-nsg-executive-${var.env}"
   resource_group_name = azurerm_resource_group.banking1.name
   location            = azurerm_resource_group.banking1.location
   tags                = local.common_tags
 
+  # ── Executives can ping any VM in any region (outbound unrestricted ICMP) ──
   security_rule {
-    name                       = "Deny-Upward-To-Executive"
+    name                       = "Allow-ICMP-Out-to-All"
+    priority                   = 100
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  # ── Allow ICMP only from R1 Manager (management) ──────────────────────────
+  security_rule {
+    name                       = "Allow-ICMP-from-R1Manager"
+    priority                   = 300
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region1_extended["management"]
+    destination_address_prefix = "*"
+  }
+
+  # ── Allow ICMP only from R2 Manager (itops) via VNet Peering ──────────────
+  security_rule {
+    name                       = "Allow-ICMP-from-R2Manager"
+    priority                   = 301
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region2["itops"]
+    destination_address_prefix = "*"
+  }
+
+  # ── Deny all other inbound ICMP (employees cannot ping back) ──────────────
+  security_rule {
+    name                       = "Deny-All-Other-Inbound"
     priority                   = 400
     direction                  = "Inbound"
     access                     = "Deny"
@@ -165,7 +207,7 @@ resource "azurerm_network_security_group" "executive" {
 
 resource "azurerm_network_interface_security_group_association" "executive" {
   for_each = { for k, v in module.vms_extended_1.nic_ids : k => v if startswith(k, "executive-") }
-  
+
   network_interface_id      = each.value
   network_security_group_id = azurerm_network_security_group.executive.id
 }
@@ -203,13 +245,14 @@ resource "azurerm_network_interface_security_group_association" "soc" {
 # REGION 2 (SOUTHEAST ASIA) - ENTERPRISE ZERO TRUST NSGs
 # -----------------------------------------------------------------------------
 
-# 7. Loans NSG
+# 7. Loans NSG (R2 Employee)
 resource "azurerm_network_security_group" "loans" {
   name                = "${local.name_prefix}-nsg-loans-${var.env}"
   resource_group_name = azurerm_resource_group.banking2.name
   location            = azurerm_resource_group.banking2.location
   tags                = local.common_tags
 
+  # ── Existing app-layer rule ────────────────────────────────────────────────
   security_rule {
     name                       = "Allow-Loans-to-Risk"
     priority                   = 160
@@ -221,23 +264,75 @@ resource "azurerm_network_security_group" "loans" {
     source_address_prefix      = "*"
     destination_address_prefix = var.subnets_region2["risk"]
   }
+
+  # ── Allow ICMP IN from Executive (executives can ping everyone) ──────────────
+  security_rule {
+    name                       = "Allow-ICMP-In-from-Executive"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region1_extended["executive"]
+    destination_address_prefix = "*"
+  }
+
+  # ── Chain-of-Command ICMP: Employee ↔ R2 Manager (itops) ──────────────────
+  security_rule {
+    name                       = "Allow-ICMP-Out-to-R2Manager"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region2["itops"]
+  }
+
+  security_rule {
+    name                       = "Allow-ICMP-In-from-R2Manager"
+    priority                   = 201
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region2["itops"]
+    destination_address_prefix = "*"
+  }
+
+  # ── Block: Employees cannot ping Executive subnet ──────────────────────────
+  security_rule {
+    name                       = "Deny-ICMP-Out-to-Executive"
+    priority                   = 210
+    direction                  = "Outbound"
+    access                     = "Deny"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region1_extended["executive"]
+  }
 }
 
 resource "azurerm_network_interface_security_group_association" "loans" {
   for_each = { for k, v in module.vms2.nic_ids : k => v if startswith(k, "loans-") }
-  
+
   network_interface_id      = each.value
   network_security_group_id = azurerm_network_security_group.loans.id
 }
 
 
-# 8. Risk NSG
+# 8. Risk NSG (R2 Employee)
 resource "azurerm_network_security_group" "risk" {
   name                = "${local.name_prefix}-nsg-risk-${var.env}"
   resource_group_name = azurerm_resource_group.banking2.name
   location            = azurerm_resource_group.banking2.location
   tags                = local.common_tags
 
+  # ── Existing app-layer rule ────────────────────────────────────────────────
   security_rule {
     name                       = "Allow-Loans-to-Risk-Inbound"
     priority                   = 170
@@ -249,11 +344,62 @@ resource "azurerm_network_security_group" "risk" {
     source_address_prefix      = var.subnets_region2["loans"]
     destination_address_prefix = "*"
   }
+
+  # ── Allow ICMP IN from Executive (executives can ping everyone) ──────────────
+  security_rule {
+    name                       = "Allow-ICMP-In-from-Executive"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region1_extended["executive"]
+    destination_address_prefix = "*"
+  }
+
+  # ── Chain-of-Command ICMP: Employee ↔ R2 Manager (itops) ──────────────────
+  security_rule {
+    name                       = "Allow-ICMP-Out-to-R2Manager"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region2["itops"]
+  }
+
+  security_rule {
+    name                       = "Allow-ICMP-In-from-R2Manager"
+    priority                   = 201
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region2["itops"]
+    destination_address_prefix = "*"
+  }
+
+  # ── Block: Employees cannot ping Executive subnet ──────────────────────────
+  security_rule {
+    name                       = "Deny-ICMP-Out-to-Executive"
+    priority                   = 210
+    direction                  = "Outbound"
+    access                     = "Deny"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region1_extended["executive"]
+  }
 }
 
 resource "azurerm_network_interface_security_group_association" "risk" {
   for_each = { for k, v in module.vms2.nic_ids : k => v if startswith(k, "risk-") }
-  
+
   network_interface_id      = each.value
   network_security_group_id = azurerm_network_security_group.risk.id
 }
@@ -281,7 +427,192 @@ resource "azurerm_network_security_group" "compliance" {
 
 resource "azurerm_network_interface_security_group_association" "compliance" {
   for_each = { for k, v in module.vms_extended_2.nic_ids : k => v if startswith(k, "compliance-") }
-  
+
   network_interface_id      = each.value
   network_security_group_id = azurerm_network_security_group.compliance.id
+}
+
+
+###############################################################################
+# 10. IT-Ops NSG – R2 MANAGER (itops-1)
+# ✅ Ping R2 employees (loans, risk)  – bidirectional
+# ✅ Ping R1 Manager  (management)    – cross-region via VNet peering
+# ✅ Ping Executive   (executive)     – managers have upward visibility
+###############################################################################
+resource "azurerm_network_security_group" "itops" {
+  name                = "${local.name_prefix}-nsg-itops-${var.env}"
+  resource_group_name = azurerm_resource_group.banking2.name
+  location            = azurerm_resource_group.banking2.location
+  tags                = local.common_tags
+
+  # Allow ICMP OUT to R2 employee subnets
+  security_rule {
+    name                         = "Allow-ICMP-Out-to-R2Employees"
+    priority                     = 200
+    direction                    = "Outbound"
+    access                       = "Allow"
+    protocol                     = "Icmp"
+    source_port_range            = "*"
+    destination_port_range       = "*"
+    source_address_prefix        = "*"
+    destination_address_prefixes = [var.subnets_region2["loans"], var.subnets_region2["risk"]]
+  }
+
+  # Allow ICMP IN from Executive (executives can ping everyone)
+  security_rule {
+    name                       = "Allow-ICMP-In-from-Executive"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region1_extended["executive"]
+    destination_address_prefix = "*"
+  }
+
+  # Allow ICMP IN from R2 employee subnets
+  security_rule {
+    name                       = "Allow-ICMP-In-from-R2Employees"
+    priority                   = 201
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefixes    = [var.subnets_region2["loans"], var.subnets_region2["risk"]]
+    destination_address_prefix = "*"
+  }
+
+  # Allow ICMP OUT to R1 Manager (cross-region)
+  security_rule {
+    name                       = "Allow-ICMP-Out-to-R1Manager"
+    priority                   = 210
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region1_extended["management"]
+  }
+
+  # Allow ICMP IN from R1 Manager (cross-region)
+  security_rule {
+    name                       = "Allow-ICMP-In-from-R1Manager"
+    priority                   = 211
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region1_extended["management"]
+    destination_address_prefix = "*"
+  }
+
+  # Allow ICMP OUT to Executive (manager upward visibility)
+  security_rule {
+    name                       = "Allow-ICMP-Out-to-Executive"
+    priority                   = 220
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region1_extended["executive"]
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "itops" {
+  for_each = { for k, v in module.vms2.nic_ids : k => v if startswith(k, "itops-") }
+
+  network_interface_id      = each.value
+  network_security_group_id = azurerm_network_security_group.itops.id
+}
+
+
+###############################################################################
+# 11. Management NSG – R1 MANAGER (management-1)
+# ✅ Ping R2 Manager (itops)   – cross-region via VNet peering
+# ✅ Ping Executive             – managers have upward visibility
+# ❌ R1 employees blocked from pinging management (enforced on employee NSGs)
+###############################################################################
+resource "azurerm_network_security_group" "management" {
+  name                = "${local.name_prefix}-nsg-management-${var.env}"
+  resource_group_name = azurerm_resource_group.banking1.name
+  location            = azurerm_resource_group.banking1.location
+  tags                = local.common_tags
+
+  # Allow ICMP OUT to R2 Manager (cross-region)
+  security_rule {
+    name                       = "Allow-ICMP-Out-to-R2Manager"
+    priority                   = 200
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region2["itops"]
+  }
+
+  # Allow ICMP IN from Executive (executives can ping everyone)
+  security_rule {
+    name                       = "Allow-ICMP-In-from-Executive"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region1_extended["executive"]
+    destination_address_prefix = "*"
+  }
+
+  # Allow ICMP IN from R2 Manager (cross-region)
+  security_rule {
+    name                       = "Allow-ICMP-In-from-R2Manager"
+    priority                   = 201
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.subnets_region2["itops"]
+    destination_address_prefix = "*"
+  }
+
+  # Allow ICMP OUT to Executive (manager upward visibility)
+  security_rule {
+    name                       = "Allow-ICMP-Out-to-Executive"
+    priority                   = 210
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.subnets_region1_extended["executive"]
+  }
+
+  # Deny all other inbound ICMP (blocks employees from pinging manager directly)
+  security_rule {
+    name                       = "Deny-ICMP-In-from-Employees"
+    priority                   = 4000
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "management" {
+  for_each = { for k, v in module.vms_extended_1.nic_ids : k => v if startswith(k, "management-") }
+
+  network_interface_id      = each.value
+  network_security_group_id = azurerm_network_security_group.management.id
 }

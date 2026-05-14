@@ -1,7 +1,7 @@
 ###############################################################################
 # modules/backup/main.tf – Recovery Services Vault
 #
-# RSV naming: gulmaan-banking-rsv-dev
+# RSV naming: mohdg-banking-rsv-dev
 ###############################################################################
 
 resource "azurerm_recovery_services_vault" "this" {

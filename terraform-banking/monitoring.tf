@@ -26,4 +26,6 @@ resource "azurerm_log_analytics_solution" "sentinel" {
     publisher = "Microsoft"
     product   = "OMSGallery/SecurityInsights"
   }
+
+  tags = local.common_tags
 }

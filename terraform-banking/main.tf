@@ -174,7 +174,9 @@ module "subnets2" {
 module "vms1" {
   source = "./modules/vm"
 
-  vm_map              = local.vm_map1
+  # QUOTA: Region 1 (eastasia) 6/6 vCPU used by vms_extended_1 (corebank, database, management)
+  # Base subnets (accounts, payments, customer) are network-only; VMs disabled to stay within quota.
+  vm_map              = {}
   name_prefix         = "${local.name_prefix}-r1"
   env                 = var.env
   resource_group_name = azurerm_resource_group.banking1.name
@@ -212,7 +214,7 @@ module "vms2" {
 module "storage" {
   source = "./modules/storage"
 
-  name                = "gulmaanbankingdevr1"
+  name                = "mohdggulmaanbankr1"
   resource_group_name = azurerm_resource_group.banking1.name
   location            = azurerm_resource_group.banking1.location
   account_tier        = var.storage_account_tier
