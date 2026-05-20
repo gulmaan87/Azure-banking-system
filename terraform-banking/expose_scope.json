@@ -1,0 +1,16 @@
+{
+  "api": {
+    "oauth2PermissionScopes": [
+      {
+        "adminConsentDescription": "Allow the portal to read and write customer data",
+        "adminConsentDisplayName": "Customer.ReadWrite",
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "isEnabled": true,
+        "type": "Admin",
+        "userConsentDescription": "Allow reading and writing customer data",
+        "userConsentDisplayName": "Customer.ReadWrite",
+        "value": "Customer.ReadWrite"
+      }
+    ]
+  }
+}

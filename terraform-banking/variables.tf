@@ -182,6 +182,14 @@ variable "storage_replication_type" {
   default     = "LRS"
 }
 
+# ── Storage ───────────────────────────────────────────────────────────────────
+
+variable "storage_account_name" {
+  description = "Name of the existing Azure Storage Account for KYC documents."
+  type        = string
+  default     = "mohdggulmaanbankr1"
+}
+
 # ── Key Vault ─────────────────────────────────────────────────────────────────
 
 variable "key_vault_sku" {
@@ -226,3 +234,25 @@ variable "tags" {
     SecurityZone  = "enterprise"
   }
 }
+
+# ── Key Vault Secrets ─────────────────────────────────────────────────────────
+
+variable "db_password" {
+  description = "SQL Server password for bankapp user — stored in Key Vault, never logged."
+  type        = string
+  sensitive   = true
+  default     = "YourStrong@Passw0rd"   # Override in terraform.tfvars
+}
+
+variable "api_client_id" {
+  description = "Azure AD App Registration client ID for the backend API ('azure-bank-api')."
+  type        = string
+  default     = ""  # Set in terraform.tfvars after App Registration is created
+}
+
+variable "frontend_url" {
+  description = "URL of the React portal — used by backend CORS and stored in Key Vault."
+  type        = string
+  default     = "http://localhost:5173"
+}
+

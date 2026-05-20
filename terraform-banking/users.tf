@@ -1,5 +1,5 @@
 ###############################################################################
-# users.tf – 8 Banking System Users (Indian Names)
+# users.tf – 8 Banking System Users (Enterprise/Breaking Bad Theme)
 #
 # Departments:
 #   Bank Admins       → 2 users (IT leadership)
