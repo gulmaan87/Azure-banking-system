@@ -46,9 +46,9 @@ const TransactionsDashboard = () => {
   const fetchStats = useCallback(async () => {
     try {
       const api = createApi(getToken);
-      const res = await api.get('/transactions/stats');
-      if (res.data && res.data.data) {
-        setStats(res.data.data);
+      const res = await api.transactions.getStats();
+      if (res && res.data) {
+        setStats(res.data);
       }
     } catch (err) {
       console.error("Failed to load transaction stats", err);
@@ -60,17 +60,17 @@ const TransactionsDashboard = () => {
     try {
       const api = createApi(getToken);
       const offset = (page - 1) * limit;
-      let url = `/transactions?limit=${limit}&offset=${offset}`;
-
-      if (filters.search) url += `&search=${encodeURIComponent(filters.search)}`;
-      if (filters.type) url += `&type=${encodeURIComponent(filters.type)}`;
-      if (filters.minAmount) url += `&minAmount=${encodeURIComponent(filters.minAmount)}`;
-      if (filters.flagged) url += `&flagged=true`;
-
-      const res = await api.get(url);
-      if (res.data) {
-        setTransactions(res.data.data || []);
-        setTotal(res.data.total || 0);
+      const res = await api.transactions.getAll({
+        limit,
+        offset,
+        search: filters.search,
+        type: filters.type,
+        minAmount: filters.minAmount,
+        flagged: filters.flagged ? 'true' : ''
+      });
+      if (res) {
+        setTransactions(res.data || []);
+        setTotal(res.total || 0);
       }
     } catch (err) {
       console.error("Failed to load transactions", err);

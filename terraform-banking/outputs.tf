@@ -37,3 +37,9 @@ output "vm_private_ips_region2" {
 output "storage_account_name" {
   value = module.storage.storage_account_name
 }
+
+output "corebank_public_ip" {
+  description = "The public IP of corebank-1 VM"
+  value       = lookup(module.vms_extended_1.vm_public_ips, "corebank-1", "")
+}
+

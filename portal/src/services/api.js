@@ -50,6 +50,17 @@ export const createApi = (getToken) => {
       flag:     (id, reason)    => patch(`/customers/${id}/flag`,     { reason }),
     },
     transactions: {
+      getAll: (params = {}) => {
+        const q = new URLSearchParams();
+        if (params.limit) q.append('limit', params.limit);
+        if (params.offset) q.append('offset', params.offset);
+        if (params.type) q.append('type', params.type);
+        if (params.minAmount) q.append('minAmount', params.minAmount);
+        if (params.search) q.append('search', params.search);
+        if (params.flagged) q.append('flagged', params.flagged);
+        return get(`/transactions?${q.toString()}`);
+      },
+      getStats: ()                     => get('/transactions/stats'),
       getByCustomer: (cid, limit = 50) => get(`/transactions/customer/${cid}?limit=${limit}`),
       getByAccount:  (aid, limit = 50) => get(`/transactions/account/${aid}?limit=${limit}`),
       create:  (data)                  => post('/transactions', data),
@@ -64,6 +75,9 @@ export const createApi = (getToken) => {
       reject:      (subId, customerId, note)       => patch(`/kyc/${subId}/reject`,  { customer_id: customerId, note }),
       getAmlFlags: (cid)                           => get(`/kyc/aml/${cid}`),
       resolveFlag: (fid, note)                     => patch(`/kyc/aml/${fid}/resolve`, { note }),
+    },
+    audit: {
+      getAll: (limit = 100, offset = 0)            => get(`/audit?limit=${limit}&offset=${offset}`),
     },
     health: () => fetch(`${BASE_URL}/health`).then(r => r.json()),
   };

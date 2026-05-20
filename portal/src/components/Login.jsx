@@ -13,21 +13,34 @@ const Login = ({ setRole }) => {
   const handleEmployeeLogin = async () => {
     setError('');
     setLoading(true);
+
+    const clearMsalKeys = () => {
+      [sessionStorage, localStorage].forEach(storage => {
+        try {
+          const keys = Object.keys(storage);
+          keys.forEach(key => {
+            if (key && (key.includes('interaction.status') || key.includes('msal.interaction.status'))) {
+              storage.removeItem(key);
+            }
+          });
+        } catch (e) {}
+      });
+    };
+
     try {
       if (isDev) {
         // In dev mode: skip MSAL, go straight to admin panel
         setRole('employee');
       } else {
-        // Production: real Azure AD popup login
-        const result = await instance.loginPopup(employeeLoginRequest);
-        // Store token so the API client can retrieve it
-        sessionStorage.setItem('emp_token', result.accessToken);
-        setRole('employee');
+        // Clear any stuck MSAL interaction status in sessionStorage/localStorage to prevent "interaction_in_progress" errors
+        clearMsalKeys();
+
+        // Production: real Azure AD redirect login
+        // Redirect-based flows are 100% reliable in production and bypass popup blockers entirely.
+        await instance.loginRedirect(employeeLoginRequest);
       }
     } catch (err) {
-      if (err.errorCode !== 'user_cancelled') {
-        setError(err.message || 'Authentication failed. Please try again.');
-      }
+      setError(err.message || 'Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -33,3 +33,12 @@ output "nic_ids" {
     k => nic.id
   }
 }
+
+output "vm_public_ips" {
+  description = "Map of vm_key → public IP address."
+  value = {
+    for k, pip in azurerm_public_ip.vm_pip :
+    k => pip.ip_address
+  }
+}
+

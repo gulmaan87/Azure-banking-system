@@ -222,8 +222,8 @@ const KycReview = () => {
     setLoading(true);
     try {
       const api = createApi(getToken);
-      const res = await api.get('/kyc/pending');
-      setSubmissions(res.data.data || []);
+      const res = await api.kyc.getPending();
+      setSubmissions(res.data || []);
     } catch {
       setSubmissions(MOCK_SUBMISSIONS);
     } finally {
@@ -237,12 +237,12 @@ const KycReview = () => {
     setProcessing(true);
     try {
       const api = createApi(getToken);
-      await api.patch(`/kyc/${submissionId}/approve`, { customer_id: customerId });
+      await api.kyc.approve(submissionId, customerId);
       showToast('✅ KYC approved — customer account activated');
       setSelected(null);
       fetchSubmissions();
     } catch (err) {
-      showToast(`❌ ${err.response?.data?.error || 'Approval failed'}`, 'error');
+      showToast(`❌ ${err.message || 'Approval failed'}`, 'error');
     } finally {
       setProcessing(false);
     }
@@ -252,12 +252,12 @@ const KycReview = () => {
     setProcessing(true);
     try {
       const api = createApi(getToken);
-      await api.patch(`/kyc/${submissionId}/reject`, { customer_id: customerId, note });
+      await api.kyc.reject(submissionId, customerId, note);
       showToast('KYC rejected and customer notified');
       setSelected(null);
       fetchSubmissions();
     } catch (err) {
-      showToast(`❌ ${err.response?.data?.error || 'Rejection failed'}`, 'error');
+      showToast(`❌ ${err.message || 'Rejection failed'}`, 'error');
     } finally {
       setProcessing(false);
     }

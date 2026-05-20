@@ -59,3 +59,10 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "public_ip_vm_keys" {
+  description = "List of VM keys that should receive a public IP address"
+  type        = list(string)
+  default     = []
+}
+

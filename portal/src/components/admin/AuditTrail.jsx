@@ -47,8 +47,8 @@ const AuditTrail = () => {
     setError(null);
     try {
       const api = createApi(getToken);
-      const res = await api.get('/audit');
-      setLogs(res.data.data || []);
+      const res = await api.audit.getAll();
+      setLogs(res.data || []);
     } catch (err) {
       // If API doesn't exist yet, show mock data so the UI is visible
       if (err?.response?.status === 404 || err?.code === 'ERR_NETWORK') {

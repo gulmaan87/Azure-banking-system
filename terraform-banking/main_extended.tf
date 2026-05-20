@@ -96,6 +96,7 @@ module "vms_extended_1" {
   admin_password      = var.vm_admin_password
   os_disk_size_gb     = var.os_disk_size_gb
   tags                = local.common_tags
+  public_ip_vm_keys   = ["corebank-1"]
 
   depends_on = [module.subnets_extended_1]
 }
@@ -135,3 +136,31 @@ resource "azurerm_role_assignment" "vms_extended_2_storage" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = each.value
 }
+
+# -----------------------------------------------------------------------------
+# POST-APPLY AUTOMATED DEPLOYMENT TRIGGER (Frontend & Backend)
+# -----------------------------------------------------------------------------
+resource "terraform_data" "auto_deploy" {
+  input = {
+    public_ip   = lookup(module.vms_extended_1.vm_public_ips, "corebank-1", "")
+    sa_name     = module.storage.storage_account_name
+    rg_name     = azurerm_resource_group.banking1.name
+    vm_name     = "${local.name_prefix}-ext-r1-vm-corebank-1-${var.env}"
+  }
+
+  triggers_replace = [
+    # Re-run if VM IP, VM name, or Storage account changes
+    lookup(module.vms_extended_1.vm_public_ips, "corebank-1", ""),
+    module.storage.storage_account_name
+  ]
+
+  provisioner "local-exec" {
+    command = "powershell.exe -ExecutionPolicy Bypass -File ./deploy_all.ps1 -PublicIp '${self.input.public_ip}' -StorageAccount '${self.input.sa_name}' -ResourceGroup '${self.input.rg_name}' -VmName '${self.input.vm_name}'"
+  }
+
+  depends_on = [
+    module.vms_extended_1,
+    module.storage
+  ]
+}
+

@@ -8,7 +8,7 @@
 
 import { useMsal } from '@azure/msal-react';
 import { jwtDecode } from 'jwt-decode';
-import { apiTokenRequest, AD_GROUPS } from './authConfig.js';
+import { apiTokenRequest, employeeLoginRequest, AD_GROUPS } from './authConfig.js';
 import { useCallback } from 'react';
 
 const isDev = import.meta.env.DEV;
@@ -28,6 +28,20 @@ const DEV_EMPLOYEE = {
   email: 'walter@dev.local',
   role:  'ADMIN',
   upn:   'walter@dev.local',
+};
+
+// Helper to clear stuck MSAL interaction states to prevent "interaction_in_progress" errors
+const clearMsalKeys = () => {
+  [sessionStorage, localStorage].forEach(storage => {
+    try {
+      const keys = Object.keys(storage);
+      keys.forEach(key => {
+        if (key && (key.includes('interaction.status') || key.includes('msal.interaction.status'))) {
+          storage.removeItem(key);
+        }
+      });
+    } catch (e) {}
+  });
 };
 
 export const useEmployeeAuth = () => {
@@ -68,20 +82,22 @@ export const useEmployeeAuth = () => {
         account,
       });
       return result.accessToken;
-    } catch {
-      // Silent acquire failed — trigger interactive login
-      const result = await instance.acquireTokenPopup(apiTokenRequest);
-      return result.accessToken;
+    } catch (silentErr) {
+      console.error("Silent token acquisition failed:", silentErr);
+      clearMsalKeys();
+      throw silentErr;
     }
   }, [instance, account]);
 
   const login = useCallback(async () => {
-    await instance.loginPopup(apiTokenRequest);
+    clearMsalKeys();
+    await instance.loginRedirect(employeeLoginRequest);
   }, [instance]);
 
   const logout = useCallback(async () => {
     sessionStorage.removeItem('emp_token');
-    await instance.logoutPopup({ account });
+    clearMsalKeys();
+    await instance.logoutRedirect({ account });
   }, [instance, account]);
 
   return {

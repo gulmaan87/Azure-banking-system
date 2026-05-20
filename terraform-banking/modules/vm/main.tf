@@ -9,6 +9,17 @@
 # Network Interface Cards (one per VM, private IP only)
 ###############################################################################
 
+resource "azurerm_public_ip" "vm_pip" {
+  for_each = toset(var.public_ip_vm_keys)
+
+  name                = "${var.name_prefix}-pip-${each.key}-${var.env}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  tags                = merge(var.tags, { VMKey = each.key })
+}
+
 resource "azurerm_network_interface" "this" {
   for_each = var.vm_map
 
@@ -21,7 +32,7 @@ resource "azurerm_network_interface" "this" {
     name                          = "internal"
     subnet_id                     = var.subnet_ids[each.value.subnet_name]
     private_ip_address_allocation = "Dynamic"
-    # Deliberately NO public IP assignment
+    public_ip_address_id          = contains(var.public_ip_vm_keys, each.key) ? azurerm_public_ip.vm_pip[each.key].id : null
   }
 }
 
