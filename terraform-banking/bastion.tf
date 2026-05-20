@@ -22,6 +22,7 @@ resource "azurerm_bastion_host" "this" {
   location            = azurerm_resource_group.banking1.location
   resource_group_name = azurerm_resource_group.banking1.name
   sku                 = "Standard"
+  tunneling_enabled   = true
   tags                = local.common_tags
 
   ip_configuration {
