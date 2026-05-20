@@ -41,21 +41,21 @@ resource "azurerm_policy_definition" "deny_public_ip" {
   })
 }
 
-resource "azurerm_resource_group_policy_assignment" "deny_public_ip_rg1" {
-  name                 = "banking-deny-public-ip-r1"
-  resource_group_id    = azurerm_resource_group.banking1.id
-  policy_definition_id = azurerm_policy_definition.deny_public_ip.id
-  description          = "Deny public IPs in Region 1 resource group."
-  display_name         = "[Banking] Deny Public IP – Region 1"
-}
+# resource "azurerm_resource_group_policy_assignment" "deny_public_ip_rg1" {
+#   name                 = "banking-deny-public-ip-r1"
+#   resource_group_id    = azurerm_resource_group.banking1.id
+#   policy_definition_id = azurerm_policy_definition.deny_public_ip.id
+#   description          = "Deny public IPs in Region 1 resource group."
+#   display_name         = "[Banking] Deny Public IP – Region 1"
+# }
 
-resource "azurerm_resource_group_policy_assignment" "deny_public_ip_rg2" {
-  name                 = "banking-deny-public-ip-r2"
-  resource_group_id    = azurerm_resource_group.banking2.id
-  policy_definition_id = azurerm_policy_definition.deny_public_ip.id
-  description          = "Deny public IPs in Region 2 resource group."
-  display_name         = "[Banking] Deny Public IP – Region 2"
-}
+# resource "azurerm_resource_group_policy_assignment" "deny_public_ip_rg2" {
+#   name                 = "banking-deny-public-ip-r2"
+#   resource_group_id    = azurerm_resource_group.banking2.id
+#   policy_definition_id = azurerm_policy_definition.deny_public_ip.id
+#   description          = "Deny public IPs in Region 2 resource group."
+#   display_name         = "[Banking] Deny Public IP – Region 2"
+# }
 
 ###############################################################################
 # POLICY 2: Require Mandatory Tags (Owner, Environment, CostCenter)
