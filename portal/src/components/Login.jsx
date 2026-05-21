@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, User, Briefcase, Loader } from 'lucide-react';
 import { useMsal } from '@azure/msal-react';
-import { employeeLoginRequest } from '../auth/authConfig.js';
+import { employeeLoginRequest, isAuthConfigValid, authConfigErrorMsg, isOptionalConfigValid, optionalConfigWarningMsg } from '../auth/authConfig.js';
 import './Login.css';
 
 const Login = ({ setRole }) => {
@@ -23,7 +23,9 @@ const Login = ({ setRole }) => {
               storage.removeItem(key);
             }
           });
-        } catch (e) {}
+        } catch {
+          // Ignore storage access errors
+        }
       });
     };
 
@@ -67,6 +69,39 @@ const Login = ({ setRole }) => {
           </div>
         )}
 
+        {!isAuthConfigValid && (
+          <div style={{
+            padding: '12px 16px', background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px',
+            color: 'var(--danger)', fontSize: '13px', marginBottom: '16px',
+            textAlign: 'left'
+          }}>
+            <strong style={{ display: 'block', marginBottom: '4px' }}>⚠️ Auth Config Error</strong>
+            <span style={{ fontSize: '12px', wordBreak: 'break-word' }}>
+              {authConfigErrorMsg}
+            </span>
+            {!isDev && (
+              <strong style={{ display: 'block', marginTop: '8px', fontSize: '12px', color: '#f87171' }}>
+                Employee login is disabled in production.
+              </strong>
+            )}
+          </div>
+        )}
+
+        {isAuthConfigValid && !isOptionalConfigValid && (
+          <div style={{
+            padding: '12px 16px', background: 'rgba(245,158,11,0.1)',
+            border: '1px solid rgba(245,158,11,0.3)', borderRadius: '8px',
+            color: '#f59e0b', fontSize: '13px', marginBottom: '16px',
+            textAlign: 'left'
+          }}>
+            <strong style={{ display: 'block', marginBottom: '4px' }}>⚠️ Optional Config Warning</strong>
+            <span style={{ fontSize: '12px', wordBreak: 'break-word' }}>
+              {optionalConfigWarningMsg}
+            </span>
+          </div>
+        )}
+
         {isDev && (
           <div style={{
             padding: '10px 14px', background: 'rgba(99,102,241,0.1)',
@@ -89,7 +124,11 @@ const Login = ({ setRole }) => {
             </div>
           </button>
 
-          <button className="portal-btn employee" onClick={handleEmployeeLogin} disabled={loading}>
+          <button 
+            className="portal-btn employee" 
+            onClick={handleEmployeeLogin} 
+            disabled={loading || (!isAuthConfigValid && !isDev)}
+          >
             <div className="portal-btn-icon">
               {loading ? <Loader size={24} style={{ animation: 'spin 1s linear infinite' }} /> : <Briefcase size={24} />}
             </div>
@@ -110,3 +149,4 @@ const Login = ({ setRole }) => {
 };
 
 export default Login;
+

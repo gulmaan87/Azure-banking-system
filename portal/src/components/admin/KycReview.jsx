@@ -72,6 +72,7 @@ const DocPreview = ({ docType, meta }) => {
 
 // ── Review Drawer ─────────────────────────────────────────────────────────────
 const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) => {
+  const { role: empRole } = useAuthContext();
   const [rejectNote, setRejectNote] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
   const docs = submission.documents || {};
@@ -150,7 +151,8 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
                 <button
                   className="btn-approve"
                   onClick={() => onApprove(submission.id, submission.customer_id)}
-                  disabled={processing}
+                  disabled={processing || empRole === null}
+                  style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }}
                 >
                   <CheckCircle size={17} />
                   {processing ? 'Processing…' : 'Approve KYC'}
@@ -158,7 +160,8 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
                 <button
                   className="btn-reject"
                   onClick={() => setShowRejectForm(true)}
-                  disabled={processing}
+                  disabled={processing || empRole === null}
+                  style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }}
                 >
                   <XCircle size={17} />
                   Reject
@@ -180,7 +183,8 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
                   <button
                     className="btn-reject-confirm"
                     onClick={handleReject}
-                    disabled={!rejectNote.trim() || processing}
+                    disabled={!rejectNote.trim() || processing || empRole === null}
+                    style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }}
                   >
                     <XCircle size={15} />
                     {processing ? 'Rejecting…' : 'Confirm Rejection'}

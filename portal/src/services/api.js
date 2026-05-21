@@ -11,8 +11,27 @@
  *   const result = await api.customers.getAll();
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+let BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const isDev    = import.meta.env.DEV;
+
+// Normalize: Trim trailing slash
+if (BASE_URL.endsWith('/')) {
+  BASE_URL = BASE_URL.slice(0, -1);
+}
+
+// Check for mixed content issues to fail-fast
+const checkMixedContent = (url) => {
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    if (url.startsWith('http://')) {
+      const isLocalhost = url.includes('://localhost') || url.includes('://127.0.0.1');
+      if (!isLocalhost) {
+        throw new Error(
+          `Insecure Connection Blocked: Portal is running on secure HTTPS, but the API URL is configured to use insecure HTTP: ${url}. A secure HTTPS API endpoint is required for production connectivity.`
+        );
+      }
+    }
+  }
+};
 
 const handleResponse = async (res) => {
   if (!res.ok) {
@@ -32,11 +51,31 @@ export const createApi = (getToken) => {
     };
   };
 
-  const get    = async (path)         => fetch(`${BASE_URL}${path}`,             { headers: await h() }).then(handleResponse);
-  const post   = async (path, body)   => fetch(`${BASE_URL}${path}`,             { method: 'POST',   headers: await h(), body: JSON.stringify(body) }).then(handleResponse);
-  const put    = async (path, body)   => fetch(`${BASE_URL}${path}`,             { method: 'PUT',    headers: await h(), body: JSON.stringify(body) }).then(handleResponse);
-  const patch  = async (path, body)   => fetch(`${BASE_URL}${path}`,             { method: 'PATCH',  headers: await h(), body: JSON.stringify(body) }).then(handleResponse);
-  const del    = async (path)         => fetch(`${BASE_URL}${path}`,             { method: 'DELETE', headers: await h() }).then(handleResponse);
+  const get    = async (path)         => {
+    const url = `${BASE_URL}${path}`;
+    checkMixedContent(url);
+    return fetch(url, { headers: await h() }).then(handleResponse);
+  };
+  const post   = async (path, body)   => {
+    const url = `${BASE_URL}${path}`;
+    checkMixedContent(url);
+    return fetch(url, { method: 'POST',   headers: await h(), body: JSON.stringify(body) }).then(handleResponse);
+  };
+  const put    = async (path, body)   => {
+    const url = `${BASE_URL}${path}`;
+    checkMixedContent(url);
+    return fetch(url, { method: 'PUT',    headers: await h(), body: JSON.stringify(body) }).then(handleResponse);
+  };
+  const patch  = async (path, body)   => {
+    const url = `${BASE_URL}${path}`;
+    checkMixedContent(url);
+    return fetch(url, { method: 'PATCH',  headers: await h(), body: JSON.stringify(body) }).then(handleResponse);
+  };
+  const del    = async (path)         => {
+    const url = `${BASE_URL}${path}`;
+    checkMixedContent(url);
+    return fetch(url, { method: 'DELETE', headers: await h() }).then(handleResponse);
+  };
 
   return {
     customers: {
@@ -79,9 +118,13 @@ export const createApi = (getToken) => {
     audit: {
       getAll: (limit = 100, offset = 0)            => get(`/audit?limit=${limit}&offset=${offset}`),
     },
-    health: () => fetch(`${BASE_URL}/health`).then(r => r.json()),
+    health: () => {
+      checkMixedContent(BASE_URL);
+      return fetch(`${BASE_URL}/health`).then(r => r.json());
+    },
   };
 };
 
 // ── Simple default client for dev (no token factory needed) ──────────────
 export const devApi = createApi(() => Promise.resolve('dev-mock-token-admin'));
+

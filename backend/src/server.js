@@ -26,10 +26,60 @@ import { initBlobStorage } from './services/BlobStorageService.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Parse FRONTEND_URLS (comma-separated), trim, dedupe
+const allowedOrigins = (process.env.FRONTEND_URLS || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(o => o.length > 0);
+
+// Fallback to FRONTEND_URL if FRONTEND_URLS is empty or not set
+if (allowedOrigins.length === 0 && process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL.trim());
+}
+
+// Default fallback for development
+if (allowedOrigins.length === 0) {
+  allowedOrigins.push('http://localhost:5173');
+}
+
+// Remove duplicates
+const uniqueOrigins = [...new Set(allowedOrigins)];
+
+console.log('🔒 Configured CORS Allowed Origins:', uniqueOrigins);
+
+// Custom CORS origin validation middleware to return explicit 403 response for disallowed origins
+const corsValidationMiddleware = (req, res, next) => {
+  const origin = req.headers.origin;
+
+  // Allow requests without Origin header (server-to-server, curl, health check etc.)
+  if (!origin) {
+    return next();
+  }
+
+  const isAllowed = uniqueOrigins.includes(origin);
+  if (!isAllowed) {
+    console.warn(`[CORS REJECTED] Origin "${origin}" is not in the allowed list.`);
+    return res.status(403).json({
+      error: 'CORS request denied: Origin not allowed.'
+    });
+  }
+
+  next();
+};
+
 // ── Security Middleware ────────────────────────────────────────────────────
 app.use(helmet());
+app.use(corsValidationMiddleware);
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // If it reaches here, it has already been validated by corsValidationMiddleware
+    // or is a request without Origin header (which is undefined).
+    if (!origin || uniqueOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));

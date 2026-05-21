@@ -14,6 +14,9 @@ module "subnets_extended_1" {
   virtual_network_name = module.vnet1.vnet_name
   subnets              = var.subnets_region1_extended
   nsg_id               = module.nsg_shared1.nsg_id
+  custom_nsg_ids       = {
+    corebank = azurerm_network_security_group.corebank.id
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -143,6 +146,7 @@ resource "azurerm_role_assignment" "vms_extended_2_storage" {
 resource "terraform_data" "auto_deploy" {
   input = {
     public_ip   = lookup(module.vms_extended_1.vm_public_ips, "corebank-1", "")
+    fqdn        = lookup(module.vms_extended_1.vm_fqdns, "corebank-1", "")
     sa_name     = module.storage.storage_account_name
     rg_name     = azurerm_resource_group.banking1.name
     vm_name     = "${local.name_prefix}-ext-r1-vm-corebank-1-${var.env}"
@@ -155,7 +159,7 @@ resource "terraform_data" "auto_deploy" {
   ]
 
   provisioner "local-exec" {
-    command = "powershell.exe -ExecutionPolicy Bypass -File ./deploy_all.ps1 -PublicIp '${self.input.public_ip}' -StorageAccount '${self.input.sa_name}' -ResourceGroup '${self.input.rg_name}' -VmName '${self.input.vm_name}'"
+    command = "powershell.exe -ExecutionPolicy Bypass -File ./deploy_all.ps1 -PublicIp '${self.input.public_ip}' -Fqdn '${self.input.fqdn}' -StorageAccount '${self.input.sa_name}' -ResourceGroup '${self.input.rg_name}' -VmName '${self.input.vm_name}'"
   }
 
   depends_on = [

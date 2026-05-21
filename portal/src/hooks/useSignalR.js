@@ -14,7 +14,26 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+// Normalize: Trim trailing slash
+if (API_URL.endsWith('/')) {
+  API_URL = API_URL.slice(0, -1);
+}
+
+// Check for mixed content issues to fail-fast
+const checkMixedContent = (url) => {
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    if (url.startsWith('http://')) {
+      const isLocalhost = url.includes('://localhost') || url.includes('://127.0.0.1');
+      if (!isLocalhost) {
+        throw new Error(
+          `Insecure Connection Blocked: Portal is running on secure HTTPS, but the API URL is configured to use insecure HTTP: ${url}. A secure HTTPS API endpoint is required for production connectivity.`
+        );
+      }
+    }
+  }
+};
 
 export const useSignalR = (onEvent) => {
   const connectionRef = useRef(null);
@@ -23,6 +42,7 @@ export const useSignalR = (onEvent) => {
 
   const connect = useCallback(async () => {
     try {
+      checkMixedContent(API_URL);
       // Step 1: Ask backend for the negotiate URL
       const negotiate = await fetch(`${API_URL}/signalr/negotiate`).then(r => r.json());
 

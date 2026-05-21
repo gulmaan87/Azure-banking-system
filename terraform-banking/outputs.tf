@@ -43,3 +43,8 @@ output "corebank_public_ip" {
   value       = lookup(module.vms_extended_1.vm_public_ips, "corebank-1", "")
 }
 
+output "corebank_fqdn" {
+  description = "The FQDN of corebank-1 VM"
+  value       = lookup(module.vms_extended_1.vm_fqdns, "corebank-1", "")
+}
+

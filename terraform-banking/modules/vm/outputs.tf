@@ -42,3 +42,11 @@ output "vm_public_ips" {
   }
 }
 
+output "vm_fqdns" {
+  description = "Map of vm_key → FQDN."
+  value = {
+    for k, pip in azurerm_public_ip.vm_pip :
+    k => pip.fqdn
+  }
+}
+

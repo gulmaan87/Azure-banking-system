@@ -165,7 +165,7 @@ const AdminDashboard = ({ setRole }) => {
         {employee && (
           <div style={{ marginTop: '12px', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', fontSize: '13px' }}>
             <div style={{ fontWeight: 600, color: 'white' }}>{employee.name}</div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{empRole} · {employee.email}</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{empRole || 'NO ROLE'} · {employee.email}</div>
           </div>
         )}
 
@@ -192,6 +192,30 @@ const AdminDashboard = ({ setRole }) => {
 
       {/* Main Content */}
       <main className="admin-main animate-slide-up delay-1">
+        {empRole === null && (
+          <div style={{
+            padding: '16px 20px',
+            background: 'rgba(239, 68, 68, 0.15)',
+            borderLeft: '4px solid var(--danger)',
+            borderRadius: '8px',
+            color: '#fff',
+            margin: '24px 24px 0 24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <AlertTriangle size={20} color="var(--danger)" style={{ flexShrink: 0 }} />
+            <div>
+              <strong style={{ display: 'block', color: 'var(--danger)', fontSize: '14px', marginBottom: '2px' }}>
+                Authenticated but no authorized role assigned
+              </strong>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                Your account is verified via Azure AD, but you do not belong to any authorized security groups. Access to all administrative and write actions has been restricted.
+              </span>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'overview' && <BankManagement />}
 
         {activeTab === 'transactions' && (
@@ -222,7 +246,8 @@ const AdminDashboard = ({ setRole }) => {
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{filtered.length} records</span>
                   <button className="admin-action-btn" onClick={() => handleOpenModal()}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    disabled={empRole === null}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }}>
                     <Plus size={16} /> Add Customer
                   </button>
                 </div>
@@ -275,15 +300,15 @@ const AdminDashboard = ({ setRole }) => {
                         </td>
                         <td>
                           <div className="table-actions">
-                            <button className="icon-btn" onClick={() => handleOpenModal(cus)} title="Edit"><Edit2 size={15} /></button>
+                            <button className="icon-btn" onClick={() => handleOpenModal(cus)} disabled={empRole === null} style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }} title="Edit"><Edit2 size={15} /></button>
                             {cus.status === 'Frozen'
-                              ? <button className="icon-btn" onClick={() => handleUnfreeze(cus.id)} title="Unfreeze"><RotateCcw size={15} color="var(--success)" /></button>
-                              : <button className="icon-btn" onClick={() => handleFreeze(cus.id)} title="Freeze"><Ban size={15} color="var(--danger)" /></button>
+                              ? <button className="icon-btn" onClick={() => handleUnfreeze(cus.id)} disabled={empRole === null} style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }} title="Unfreeze"><RotateCcw size={15} color={empRole === null ? "var(--text-muted)" : "var(--success)"} /></button>
+                              : <button className="icon-btn" onClick={() => handleFreeze(cus.id)} disabled={empRole === null} style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }} title="Freeze"><Ban size={15} color={empRole === null ? "var(--text-muted)" : "var(--danger)"} /></button>
                             }
                             {cus.status === 'Active' &&
-                              <button className="icon-btn" onClick={() => handleFlag(cus.id)} title="Flag AML"><Flag size={15} color="#fbbf24" /></button>
+                              <button className="icon-btn" onClick={() => handleFlag(cus.id)} disabled={empRole === null} style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }} title="Flag AML"><Flag size={15} color={empRole === null ? "var(--text-muted)" : "#fbbf24"} /></button>
                             }
-                            <button className="icon-btn" onClick={() => handleDelete(cus.id)} title="Delete"><Trash2 size={15} color="var(--danger)" /></button>
+                            <button className="icon-btn" onClick={() => handleDelete(cus.id)} disabled={empRole === null} style={{ opacity: empRole === null ? 0.5 : 1, cursor: empRole === null ? 'not-allowed' : 'pointer' }} title="Delete"><Trash2 size={15} color={empRole === null ? "var(--text-muted)" : "var(--danger)"} /></button>
                           </div>
                         </td>
                       </tr>

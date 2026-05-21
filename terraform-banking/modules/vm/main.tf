@@ -17,6 +17,7 @@ resource "azurerm_public_ip" "vm_pip" {
   location            = var.location
   allocation_method   = "Static"
   sku                 = "Standard"
+  domain_name_label   = "${var.name_prefix}-${each.key}-${var.env}"
   tags                = merge(var.tags, { VMKey = each.key })
 }
 

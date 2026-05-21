@@ -15,20 +15,14 @@ const isDev = import.meta.env.DEV;
 
 // ── Role resolver ─────────────────────────────────────────────────────────
 const resolveRole = (groups = []) => {
-  if (groups.includes(AD_GROUPS.BANK_ADMINS))       return 'ADMIN';
-  if (groups.includes(AD_GROUPS.SECURITY_AUDITORS)) return 'AUDITOR';
-  if (groups.includes(AD_GROUPS.APP_DEVELOPERS))    return 'DEVELOPER';
-  if (groups.includes(AD_GROUPS.DATA_ENGINEERS))    return 'DATA';
+  if (AD_GROUPS.BANK_ADMINS && groups.includes(AD_GROUPS.BANK_ADMINS))       return 'ADMIN';
+  if (AD_GROUPS.SECURITY_AUDITORS && groups.includes(AD_GROUPS.SECURITY_AUDITORS)) return 'AUDITOR';
+  if (AD_GROUPS.APP_DEVELOPERS && groups.includes(AD_GROUPS.APP_DEVELOPERS))    return 'DEVELOPER';
+  if (AD_GROUPS.DATA_ENGINEERS && groups.includes(AD_GROUPS.DATA_ENGINEERS))    return 'DATA';
   return null;
 };
 
-// ── Dev mock employee ──────────────────────────────────────────────────────
-const DEV_EMPLOYEE = {
-  name:  'Walter White (Dev)',
-  email: 'walter@dev.local',
-  role:  'ADMIN',
-  upn:   'walter@dev.local',
-};
+
 
 // Helper to clear stuck MSAL interaction states to prevent "interaction_in_progress" errors
 const clearMsalKeys = () => {
@@ -40,25 +34,15 @@ const clearMsalKeys = () => {
           storage.removeItem(key);
         }
       });
-    } catch (e) {}
+    } catch {
+      // Ignore storage access errors
+    }
   });
 };
 
 export const useEmployeeAuth = () => {
   const { instance, accounts } = useMsal();
   const account = accounts[0];
-
-  // ── In dev mode, skip real MSAL entirely ──────────────────────────────
-  if (isDev && !account) {
-    return {
-      isAuthenticated: false,
-      employee: null,
-      role: null,
-      login:  async () => {},   // login handled by Login component
-      logout: async () => {},
-      getToken: async () => 'dev-mock-token-admin',
-    };
-  }
 
   // Decode the idToken to extract groups and profile
   const employee = account ? (() => {
@@ -99,6 +83,22 @@ export const useEmployeeAuth = () => {
     clearMsalKeys();
     await instance.logoutRedirect({ account });
   }, [instance, account]);
+
+  // ── In dev mode, skip real MSAL entirely ──────────────────────────────
+  if (isDev && !account) {
+    return {
+      isAuthenticated: false,
+      employee: {
+        name: 'Walter White',
+        email: 'walter@cook.com',
+        role: 'ADMIN',
+      },
+      role: 'ADMIN',
+      login:  async () => {},   // login handled by Login component
+      logout: async () => {},
+      getToken: async () => 'dev-mock-token-admin',
+    };
+  }
 
   return {
     isAuthenticated: !!account,

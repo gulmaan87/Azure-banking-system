@@ -31,3 +31,9 @@ variable "nsg_id" {
   description = "Shared NSG resource ID."
   type        = string
 }
+
+variable "custom_nsg_ids" {
+  description = "Optional map of subnet name -> specific NSG ID to override the shared NSG."
+  type        = map(string)
+  default     = {}
+}

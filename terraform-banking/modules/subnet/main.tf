@@ -14,10 +14,10 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [each.value]
 }
 
-# Associate each subnet with the shared NSG
+# Associate each subnet with the shared NSG (or custom NSG if overridden)
 resource "azurerm_subnet_network_security_group_association" "this" {
   for_each = var.subnets
 
   subnet_id                 = azurerm_subnet.this[each.key].id
-  network_security_group_id = var.nsg_id
+  network_security_group_id = lookup(var.custom_nsg_ids, each.key, var.nsg_id)
 }
