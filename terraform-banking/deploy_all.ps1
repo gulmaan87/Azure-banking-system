@@ -37,7 +37,7 @@ Write-Host "VM Name:           $VmName"         -ForegroundColor DarkCyan
 # 1. Update Portal environment variables (.env)
 # -----------------------------------------------------------------------------
 Write-Host "`nStep 1: Writing portal configuration (.env)..." -ForegroundColor Yellow
-$portalDir = Resolve-Path "../portal"
+$portalDir = Resolve-Path (Join-Path $PSScriptRoot "../portal")
 $envPath   = Join-Path $portalDir ".env"
 $envContent = @"
 VITE_API_URL=https://${Fqdn}/api
