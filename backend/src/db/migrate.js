@@ -42,6 +42,12 @@ async function runSqlFile(pool, filePath) {
 }
 
 async function main() {
+  const useDummyDb = process.env.USE_DUMMY_DB !== 'false';
+  if (useDummyDb) {
+    console.log('🔌 [Database] Bypassing migrations: Running in-memory dummy database mode.');
+    process.exit(0);
+  }
+
   const masterConfig = {
     server,
     port,
