@@ -71,14 +71,36 @@ export const create = async (data, performedBy, req = null) => {
     }
   }
 
-  // 4. Update balance
-  const balanceChange = ['Credit','Deposit'].includes(validated.type) ? validated.amount : -validated.amount;
-  const newBalance = parseFloat(acc.balance) + balanceChange;
+  // 4. Update balance(s) and insert transaction(s)
+  const txId = uuidv4();
+  let newBalance = parseFloat(acc.balance);
+  let destAcc = null;
+  let destNewBalance = 0;
 
+  if (validated.type === 'Transfer' && validated.counterparty) {
+    const destAccountResult = await query(
+      'SELECT balance, is_frozen, customer_id FROM accounts WHERE id = @id',
+      { id: validated.counterparty }
+    );
+    if (destAccountResult.recordset.length > 0) {
+      destAcc = destAccountResult.recordset[0];
+      if (destAcc.is_frozen) {
+        throw Object.assign(new Error('Destination account is frozen — transfer blocked'), { status: 403 });
+      }
+      destNewBalance = parseFloat(destAcc.balance) + validated.amount;
+    }
+  }
+
+  if (['Credit', 'Deposit'].includes(validated.type)) {
+    newBalance += validated.amount;
+  } else {
+    newBalance -= validated.amount;
+  }
+
+  // Update source balance
   await query('UPDATE accounts SET balance = @balance WHERE id = @id', { balance: newBalance, id: validated.account_id });
 
-  // 5. Insert transaction
-  const txId = uuidv4();
+  // Insert source transaction
   await query(
     `INSERT INTO transactions (id, account_id, type, amount, balance_after, description, counterparty, reference, country, ip_address, created_by_emp)
      VALUES (@id, @account_id, @type, @amount, @balance_after, @description, @counterparty, @reference, @country, @ip, @emp)`,
@@ -94,7 +116,37 @@ export const create = async (data, performedBy, req = null) => {
     }
   );
 
-  // 6. Audit + SignalR
+  // If internal destination exists, update destination balance and insert destination transaction
+  if (destAcc) {
+    await query('UPDATE accounts SET balance = @balance WHERE id = @id', { balance: destNewBalance, id: validated.counterparty });
+    
+    const destTxId = uuidv4();
+    await query(
+      `INSERT INTO transactions (id, account_id, type, amount, balance_after, description, counterparty, reference, country, ip_address, created_by_emp)
+       VALUES (@id, @account_id, @type, @amount, @balance_after, @description, @counterparty, @reference, @country, @ip, @emp)`,
+      {
+        id: destTxId, account_id: validated.counterparty, type: validated.type,
+        amount: validated.amount, balance_after: destNewBalance,
+        description: `Transfer from ${validated.account_id}${validated.description ? ': ' + validated.description : ''}`,
+        counterparty: validated.account_id,
+        reference: validated.reference || null,
+        country: validated.country || null,
+        ip: validated.ip_address || req?.ip || null,
+        emp: performedBy,
+      }
+    );
+
+    // Broadcast destination transaction
+    await broadcast('TransactionCreated', {
+      transaction_id: destTxId, account_id: validated.counterparty,
+      customer_id: destAcc.customer_id, type: validated.type,
+      amount: validated.amount, balance_after: destNewBalance,
+      high_value: validated.amount >= SINGLE_TX_WARN_THRESHOLD,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // 6. Audit + SignalR for source
   await auditLogger.log('CREATE_TRANSACTION', 'transaction', txId, performedBy,
     { amount: validated.amount, type: validated.type, account: validated.account_id }, req);
 

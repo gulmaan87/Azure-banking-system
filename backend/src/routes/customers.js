@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { requireRole } from '../middleware/rbac.js';
+import { requireRole, requireSelfOrStaff } from '../middleware/rbac.js';
 import * as CustomerService from '../services/CustomerService.js';
 
 const router = Router();
@@ -14,8 +14,8 @@ router.get('/', requireRole(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req,
   } catch (err) { next(err); }
 });
 
-// GET /api/customers/:id — All staff roles
-router.get('/:id', requireRole(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
+// GET /api/customers/:id — Customer self or All staff roles
+router.get('/:id', requireSelfOrStaff(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
   try {
     const customer = await CustomerService.getById(req.params.id);
     res.json({ data: customer });

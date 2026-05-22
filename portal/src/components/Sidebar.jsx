@@ -1,7 +1,16 @@
 import React from 'react';
-import { LayoutDashboard, Wallet, ArrowLeftRight, PieChart, CreditCard, Settings, LogOut, Shield, Server } from 'lucide-react';
+import { LayoutDashboard, Wallet, ArrowLeftRight, PieChart, CreditCard, Settings, LogOut, Shield } from 'lucide-react';
+import { useCustomerAuthContext } from '../auth/AuthContext.jsx';
 
 const Sidebar = ({ activePage, setActivePage, setRole }) => {
+  const { logout } = useCustomerAuthContext();
+
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    await logout();
+    setRole(null);
+  };
+
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -10,7 +19,7 @@ const Sidebar = ({ activePage, setActivePage, setRole }) => {
         </div>
         Azure Bank
       </div>
-      
+
       <nav className="nav-menu">
         <a href="#" className={`nav-item ${activePage === 'dashboard' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActivePage('dashboard'); }}>
           <LayoutDashboard size={20} />
@@ -40,7 +49,7 @@ const Sidebar = ({ activePage, setActivePage, setRole }) => {
             <Settings size={20} />
             <span>Settings</span>
           </a>
-          <a href="#" className="nav-item" onClick={(e) => { e.preventDefault(); setRole(null); }} style={{ color: 'var(--danger)' }}>
+          <a href="#" className="nav-item" onClick={handleLogout} style={{ color: 'var(--danger)' }}>
             <LogOut size={20} />
             <span>Log out</span>
           </a>

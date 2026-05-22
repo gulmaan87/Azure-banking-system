@@ -51,6 +51,7 @@ if (useDummyDb) {
       status: 'Active',
       risk_level: 'Low',
       kyc_verified: true,
+      customer_principal_id: null,
       created_at: daysAgo(30),
       updated_at: daysAgo(30)
     },
@@ -65,6 +66,7 @@ if (useDummyDb) {
       status: 'Active',
       risk_level: 'Medium',
       kyc_verified: true,
+      customer_principal_id: null,
       created_at: daysAgo(20),
       updated_at: daysAgo(20)
     },
@@ -79,6 +81,7 @@ if (useDummyDb) {
       status: 'Active',
       risk_level: 'High',
       kyc_verified: true,
+      customer_principal_id: null,
       created_at: daysAgo(40),
       updated_at: daysAgo(10)
     },
@@ -93,6 +96,7 @@ if (useDummyDb) {
       status: 'Review KYC',
       risk_level: 'Low',
       kyc_verified: false,
+      customer_principal_id: null,
       created_at: daysAgo(2),
       updated_at: daysAgo(2)
     }
@@ -301,10 +305,25 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       const match = DB.customers.filter(c => c.id === params.id);
       return { recordset: match, rowsAffected: [match.length] };
     }
+    // select single by customer_principal_id
+    if (normalized.includes('where customer_principal_id = @principalid')) {
+      const match = DB.customers.filter(c => c.customer_principal_id === params.principalId);
+      return { recordset: match, rowsAffected: [match.length] };
+    }
     // select single by email
     if (normalized.includes('where email = @email')) {
       const match = DB.customers.filter(c => c.email === params.email);
-      return { recordset: match.map(c => ({ id: c.id })), rowsAffected: [match.length] };
+      return { recordset: match, rowsAffected: [match.length] };
+    }
+    // update customer_principal_id
+    if (normalized.includes('set customer_principal_id = @principalid')) {
+      const id = params.id;
+      const cust = DB.customers.find(c => c.id === id);
+      if (cust) {
+        cust.customer_principal_id = params.principalId;
+        cust.updated_at = new Date().toISOString();
+      }
+      return { recordset: [], rowsAffected: [cust ? 1 : 0] };
     }
     // select all customers
     return {
@@ -326,6 +345,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       status: 'Review KYC',
       risk_level: 'Low',
       kyc_verified: false,
+      customer_principal_id: params.customerPrincipalId || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -333,7 +353,29 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // ── ACCOUNTS TABLE ────────────────────────────────────────────────────────
+  // UPDATE customers — principal_id dynamic mapping
+  if (normalized.startsWith('update customers set customer_principal_id')) {
+    const cust = DB.customers.find(c => c.id === params.id);
+    if (cust) {
+      cust.customer_principal_id = params.principalId;
+      cust.updated_at = new Date().toISOString();
+    }
+    return { recordset: [], rowsAffected: [cust ? 1 : 0] };
+  }
+
+  // UPDATE customers — general field updates (status, risk_level, etc.)
+  if (normalized.startsWith('update customers set')) {
+    const cust = DB.customers.find(c => c.id === params.id);
+    if (cust) {
+      if (params.status    !== undefined) cust.status     = params.status;
+      if (params.riskLevel !== undefined) cust.risk_level = params.riskLevel;
+      if (params.phone     !== undefined) cust.phone      = params.phone;
+      if (params.address   !== undefined) cust.address    = params.address;
+      cust.updated_at = new Date().toISOString();
+    }
+    return { recordset: [], rowsAffected: [cust ? 1 : 0] };
+  }
+
   if (normalized.includes('from accounts')) {
     // join customer details
     if (normalized.includes('join customers')) {
@@ -347,9 +389,21 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }).sort((a, b) => new Date(b.opened_at) - new Date(a.opened_at));
       return { recordset: result, rowsAffected: [result.length] };
     }
-    // select balances by customer_id
+    // select by customer_id — full account records
     if (normalized.includes('where customer_id = @id')) {
-      const result = DB.accounts.filter(a => a.customer_id === params.id).map(a => ({ balance: a.balance }));
+      const result = DB.accounts
+        .filter(a => a.customer_id === params.id)
+        .sort((a, b) => new Date(a.opened_at) - new Date(b.opened_at));
+      return { recordset: result, rowsAffected: [result.length] };
+    }
+    // customer_id balance sum (legacy path)
+    if (normalized.includes('where customer_id = @customerid')) {
+      const result = DB.accounts.filter(a => a.customer_id === params.customerId).map(a => ({ balance: a.balance }));
+      return { recordset: result, rowsAffected: [result.length] };
+    }
+    // select single account by ID (for ownership check)
+    if (normalized.includes('where id = @id') && !normalized.includes('customer_id')) {
+      const result = DB.accounts.filter(a => a.id === params.id);
       return { recordset: result, rowsAffected: [result.length] };
     }
     // freeze / unfreeze accounts

@@ -7,22 +7,46 @@ import Accounts from './components/Accounts';
 import Transfers from './components/Transfers';
 import AdminDashboard from './components/admin/AdminDashboard';
 import Login from './components/Login';
-import { AuthProvider } from './auth/AuthContext.jsx';
+import { AuthProvider, CustomerAuthProvider, useCustomerAuthContext } from './auth/AuthContext.jsx';
 
-function App() {
-  const { accounts } = useMsal();
-  const [role, setRole]           = useState(null);
+// ── Customer shell: wraps portal pages; requires CustomerAuthProvider ──────────
+function CustomerShell({ setRole }) {
+  const { isAuthenticated, login } = useCustomerAuthContext();
   const [activePage, setActivePage] = useState('dashboard');
+  const isDev = import.meta.env.DEV;
 
-  // If MSAL has active accounts (user is logged in), automatically transition to Employee Portal
-  useEffect(() => {
-    if (accounts && accounts.length > 0) {
-      setRole('employee');
-    } else {
-      // If employee is logged out from MSAL, reset role to show Gateway page
-      setRole(prev => prev === 'employee' ? null : prev);
-    }
-  }, [accounts]);
+  // In production, redirect unauthenticated customers to sign-in
+  if (!isAuthenticated && !isDev) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', height: '100vh', gap: '16px',
+        background: 'var(--bg-main)', color: 'var(--text-main)'
+      }}>
+        <h2>Customer Portal</h2>
+        <p style={{ color: 'var(--text-muted)' }}>Please sign in to access your accounts.</p>
+        <button
+          onClick={login}
+          style={{
+            padding: '12px 24px', background: 'var(--primary)',
+            border: 'none', borderRadius: '8px', color: 'white',
+            fontSize: '14px', fontWeight: 600, cursor: 'pointer'
+          }}
+        >
+          Sign in with Azure AD
+        </button>
+        <button
+          onClick={() => setRole(null)}
+          style={{
+            background: 'transparent', border: 'none',
+            color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px'
+          }}
+        >
+          ← Back to gateway
+        </button>
+      </div>
+    );
+  }
 
   const renderPage = () => {
     switch (activePage) {
@@ -33,21 +57,6 @@ function App() {
     }
   };
 
-  // No role selected yet → show gateway
-  if (!role) {
-    return <Login setRole={setRole} />;
-  }
-
-  // Employee portal — wrap with AuthProvider so all children can useAuthContext()
-  if (role === 'employee') {
-    return (
-      <AuthProvider>
-        <AdminDashboard setRole={setRole} />
-      </AuthProvider>
-    );
-  }
-
-  // Customer portal
   return (
     <div className="app-container">
       <Sidebar activePage={activePage} setActivePage={setActivePage} setRole={setRole} />
@@ -56,6 +65,40 @@ function App() {
         {renderPage()}
       </main>
     </div>
+  );
+}
+
+function App() {
+  const { accounts } = useMsal();
+  const [role, setRole] = useState(null);
+
+  // If MSAL has active accounts (employee logged in), auto-transition to Employee Portal
+  useEffect(() => {
+    if (accounts && accounts.length > 0) {
+      setRole('employee');
+    } else {
+      setRole(prev => prev === 'employee' ? null : prev);
+    }
+  }, [accounts]);
+
+  // Employee portal — isolated from customer context
+  if (role === 'employee') {
+    return (
+      <AuthProvider>
+        <AdminDashboard setRole={setRole} />
+      </AuthProvider>
+    );
+  }
+
+  // Customer portal AND gateway (Login) are both inside CustomerAuthProvider
+  // so Login can call customerDevLogin() via useCustomerAuthContext()
+  return (
+    <CustomerAuthProvider>
+      {!role
+        ? <Login setRole={setRole} />
+        : <CustomerShell setRole={setRole} />
+      }
+    </CustomerAuthProvider>
   );
 }
 

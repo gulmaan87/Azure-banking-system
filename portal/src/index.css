@@ -450,3 +450,35 @@ h1, h2, h3, h4, h5, h6 {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.5; }
 }
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Transfer button hover effect */
+.transfer-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--primary-glow);
+}
+
+/* Number inputs — hide spinners for cleaner look */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] { -moz-appearance: textfield; }
+
+/* Select element dark styling */
+select option {
+  background: #1a1f2c;
+  color: var(--text-main);
+}

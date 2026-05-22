@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { requireRole } from '../middleware/rbac.js';
+import { requireRole, requireSelfOrStaff } from '../middleware/rbac.js';
 import { query } from '../db/connection.js';
 
 const router = Router();
 router.use(authMiddleware);
 
-// GET /api/accounts/customer/:customerId — All staff roles
-router.get('/customer/:customerId', requireRole(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
+// GET /api/accounts/customer/:customerId — Customer self or All staff roles
+router.get('/customer/:customerId', requireSelfOrStaff(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
   try {
     const result = await query(
       'SELECT * FROM accounts WHERE customer_id = @id ORDER BY opened_at ASC',

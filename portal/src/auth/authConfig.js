@@ -16,6 +16,8 @@
 const rawTenantId = import.meta.env.VITE_AZURE_TENANT_ID || '';
 const rawClientId = import.meta.env.VITE_AZURE_CLIENT_ID || '';
 const rawApiClientId = import.meta.env.VITE_AZURE_API_CLIENT_ID || '';
+// Optional: separate customer app registration. Falls back to same app registration as employee.
+const rawCustomerClientId = import.meta.env.VITE_AZURE_CUSTOMER_CLIENT_ID || rawClientId;
 
 // Validation Helpers
 const isGuid = (val) => {
@@ -140,10 +142,32 @@ export const employeeLoginRequest = {
   ],
 };
 
-// Scopes for acquiring token silently before each API call
+// Scopes for acquiring token silently before each API call (employee)
 export const apiTokenRequest = {
   scopes: [`api://${safeApiClientId}/Customer.ReadWrite`],
 };
+
+// ── Customer-specific auth config ─────────────────────────────────────────────
+const safeCustomerClientId = (isGuid(rawCustomerClientId) && !isPlaceholder(rawCustomerClientId))
+  ? rawCustomerClientId.trim()
+  : safeClientId;
+
+// Scopes requested when a customer logs in (read-only banking access)
+export const customerLoginRequest = {
+  scopes: [
+    'openid',
+    'profile',
+    'email',
+    `api://${safeApiClientId}/Customer.Read`,
+  ],
+};
+
+// Scopes for silent token acquisition before each customer API call
+export const customerApiTokenRequest = {
+  scopes: [`api://${safeApiClientId}/Customer.Read`],
+};
+
+export const CUSTOMER_CLIENT_ID = safeCustomerClientId;
 
 export const AD_GROUPS = {
   BANK_ADMINS:       rawGroups.BANK_ADMINS,

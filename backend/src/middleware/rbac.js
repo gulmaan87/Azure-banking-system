@@ -44,3 +44,32 @@ export const requireRole = (allowedRoles) => (req, res, next) => {
   req.role = role;
   next();
 };
+
+/**
+ * requireSelfOrStaff(allowedRoles)
+ * Permits access if the caller is the customer themselves (where req.params.id or req.params.customerId matches req.customer.id),
+ * OR if the caller is an employee with one of the allowedRoles.
+ */
+export const requireSelfOrStaff = (allowedRoles) => (req, res, next) => {
+  // 1. If caller is a customer
+  if (req.customer) {
+    const customerIdParam = req.params.customerId || req.params.id;
+    if (customerIdParam && req.customer.id === customerIdParam) {
+      // It is the customer accessing their own resource
+      return next();
+    }
+    // Customer trying to access another customer's data - Forbidden!
+    return res.status(403).json({ error: 'Access denied: you do not own this resource' });
+  }
+
+  // 2. Otherwise, check employee roles
+  const userGroups = req.user?.groups || [];
+  const role = resolveRole(userGroups);
+
+  if (!role || !allowedRoles.includes(role)) {
+    return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+  }
+
+  req.role = role;
+  next();
+};

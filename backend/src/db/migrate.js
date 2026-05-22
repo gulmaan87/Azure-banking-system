@@ -99,6 +99,7 @@ async function main() {
     
     await runSqlFile(pool, path.join(__dirname, 'schema.sql'));
     await runSqlFile(pool, path.join(__dirname, 'migration_007_kyc_blob_storage.sql'));
+    await runSqlFile(pool, path.join(__dirname, 'migration_008_customer_auth.sql'));
     
     console.log('🎉 Database migrations completed successfully!');
     await pool.close();
