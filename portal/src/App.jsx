@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
+import { jwtDecode } from 'jwt-decode';
+import { AD_GROUPS } from './auth/authConfig.js';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
@@ -72,12 +74,33 @@ function App() {
   const { accounts } = useMsal();
   const [role, setRole] = useState(null);
 
-  // If MSAL has active accounts (employee logged in), auto-transition to Employee Portal
+  // If MSAL has active accounts, check their groups/claims to transition to Employee or Customer portal
   useEffect(() => {
+    if (import.meta.env.DEV) return;
+
     if (accounts && accounts.length > 0) {
-      setRole('employee');
+      const account = accounts[0];
+      let groups = [];
+      try {
+        const decoded = account.idTokenClaims || (account.idToken ? jwtDecode(account.idToken) : {});
+        groups = decoded.groups || [];
+      } catch (e) {
+        console.error('Error decoding ID token claims in App.jsx:', e);
+      }
+
+      const isEmployee =
+        (AD_GROUPS.BANK_ADMINS && groups.includes(AD_GROUPS.BANK_ADMINS)) ||
+        (AD_GROUPS.SECURITY_AUDITORS && groups.includes(AD_GROUPS.SECURITY_AUDITORS)) ||
+        (AD_GROUPS.APP_DEVELOPERS && groups.includes(AD_GROUPS.APP_DEVELOPERS)) ||
+        (AD_GROUPS.DATA_ENGINEERS && groups.includes(AD_GROUPS.DATA_ENGINEERS));
+
+      if (isEmployee) {
+        setRole('employee');
+      } else {
+        setRole('customer');
+      }
     } else {
-      setRole(prev => prev === 'employee' ? null : prev);
+      setRole(prev => (prev === 'employee' || prev === 'customer') ? null : prev);
     }
   }, [accounts]);
 
