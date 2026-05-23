@@ -15,7 +15,7 @@ An enterprise-grade, highly secure, and compliant **Full-Stack Banking Applicati
 
 ---
 video Eplanation:
-"C:\Users\mohdg\Downloads\Video Project 7.mp4"
+
 ## 🏗️ System Architecture & Data Flow
 
 This project features a multi-tiered banking architecture mapping customer actions and administrative oversight directly to isolated, highly available Azure resources.
