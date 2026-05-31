@@ -20,66 +20,8 @@ video Eplanation:
 
 This project features a multi-tiered banking architecture mapping customer actions and administrative oversight directly to isolated, highly available Azure resources.
 
-```mermaid
-flowchart TB
-    %% --- Custom Styles ---
-    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc,rx:8,ry:8
-    classDef cloud fill:#f8fafc,stroke:#0284c7,stroke-width:2px,stroke-dasharray: 5 5,color:#0f172a
-    classDef vm fill:#0369a1,stroke:#0284c7,stroke-width:2px,color:#ffffff,rx:10,ry:10
-    classDef db fill:#0f766e,stroke:#0d9488,stroke-width:2px,color:#ffffff,rx:10,ry:10
-    classDef storage fill:#581c87,stroke:#7e22ce,stroke-width:2px,color:#ffffff,rx:10,ry:10
-    classDef security fill:#450a0a,stroke:#f87171,stroke-width:2px,color:#f8fafc,rx:8,ry:8
+<img width="1536" height="1024" alt="ChatGPT Image May 21, 2026, 07_20_36 PM" src="https://github.com/user-attachments/assets/8f8b6728-761c-42f1-8fca-3d92689c9d80" />
 
-    subgraph ClientLayer["💻 Client Applications"]
-        direction LR
-        PortalC["🌐 Customer Portal<br/><small>Accounts, Balances, Transfers</small>"]:::client
-        PortalA["🛡️ Employee Admin Portal<br/><small>KYC Review, AML Alerts, Auditing</small>"]:::client
-    end
-
-    subgraph AzureCloud["☁️ Microsoft Azure Global Backbone"]
-        direction TB
-
-        %% Compute Layer
-        subgraph ComputeRG["📍 Primary Region (East Asia) — corebank-1 VM"]
-            direction TB
-            API["🚀 Node.js Express API<br/><small>Secure Routes, Key Vault Auth</small>"]:::vm
-            AML["🧠 AML Rules Engine<br/><small>Cash checks, Structuring, Velocity</small>"]:::vm
-        end
-
-        %% Identity & Secrets
-        subgraph SecurityControls["🔒 Security, Secrets & Identity"]
-            Vault["🔐 Azure Key Vault<br/><small>DB Passwords, API Keys, SignalR Strings</small>"]:::security
-            Entra["🛡️ Microsoft Entra ID (RBAC)<br/><small>Admins • Auditors • Devs • Data Eng</small>"]:::security
-        end
-
-        %% Data & Storage
-        subgraph StorageRG["💾 Data & Storage Resources"]
-            direction LR
-            Database["🗄️ SQL Database<br/><small>BankingDB (Audit Logs, Tx)</small>"]:::db
-            Blob["📦 Azure Blob Storage<br/><small>Private KYC docs & preview thumbnails</small>"]:::storage
-        end
-
-        %% Realtime & Logging
-        subgraph RealtimeLogging["⚡ Real-Time Ops & Monitoring"]
-            direction LR
-            SignalR["📯 Azure SignalR Service<br/><small>Serverless push notifications</small>"]:::storage
-            Sentinel["🔎 Microsoft Sentinel / Law<br/><small>Custom Log Ingestion & Threat SIEM</small>"]:::security
-        end
-    end
-
-    %% --- Interaction Flows ---
-    PortalC -->|"1. Web Traffic (HTTPS)"| API
-    PortalA -->|"1. MSAL AAD Authentication"| Entra
-    PortalA -->|"2. Admin operations"| API
-    
-    API -->|"Startup: Fetch configuration"| Vault
-    API -->|"Write / Query Transactions"| Database
-    API -->|"Upload KYC / Get delegation SAS Url"| Blob
-    
-    AML -->|"Real-time alerts triggered"| SignalR
-    SignalR -->|"Real-time AML Push Alerts"| PortalA
-    
-    API -->|"Batch upload audit events"| Sentinel
 ```
 
 ### Core Architecture Components
