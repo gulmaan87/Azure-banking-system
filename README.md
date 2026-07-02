@@ -14,7 +14,7 @@
 An enterprise-grade, highly secure, and compliant **Full-Stack Banking Application & Cloud Infrastructure** deployed on Microsoft Azure. Designed specifically for financial systems, this project integrates a modern **React Frontend Portal**, a secure **Node.js Express API**, and **Terraform IaC** distributed across multiple geographic regions with strict governance, zero-trust networking, real-time auditing, and fraud detection.
 
 ---
-video Eplanation:
+video Eplanation: https://drive.google.com/file/d/142svcdTFWobxUBicO0Na0ZK27zi339gp/view?usp=drive_link 
 
 ## 🏗️ System Architecture & Data Flow
 
