@@ -8,7 +8,7 @@ const fmt = (n) => {
   return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-// ── Toast notification ────────────────────────────────────────────────────────
+
 const Toast = ({ toast, onClose }) => {
   if (!toast) return null;
   const isSuccess = toast.type === 'success';
@@ -43,7 +43,7 @@ const Transfers = () => {
   const [submitting,    setSubmitting]    = useState(false);
   const [toast,         setToast]         = useState(null);
 
-  // Form state
+  
   const [fromAccount,   setFromAccount]   = useState('');
   const [toAccount,     setToAccount]     = useState('');
   const [amount,        setAmount]        = useState('');
@@ -116,13 +116,13 @@ const Transfers = () => {
 
       showToast(`$${fmt(amount)} transferred successfully!`, 'success');
 
-      // Reset form
+      
       setAmount('');
       setToAccount('');
       setDescription('');
       setFieldErrors({});
 
-      // Refresh data
+      
       await loadData();
     } catch (err) {
       showToast(err.message || 'Transfer failed. Please try again.', 'error');
@@ -159,7 +159,7 @@ const Transfers = () => {
       </div>
 
       <div className="dashboard-grid">
-        {/* Transfer Form */}
+        
         <div className="glass-panel" style={{ padding: '32px' }}>
           <h3 style={{ marginBottom: '24px' }}>New Transfer</h3>
 
@@ -169,7 +169,7 @@ const Transfers = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              {/* Amount */}
+              
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '13px' }}>
                   Amount
@@ -197,7 +197,7 @@ const Transfers = () => {
                 )}
               </div>
 
-              {/* From Account */}
+              
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '13px' }}>
                   From Account
@@ -221,7 +221,7 @@ const Transfers = () => {
                 {fieldErrors.fromAccount && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px' }}>{fieldErrors.fromAccount}</p>}
               </div>
 
-              {/* To Account */}
+              
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '13px' }}>
                   To Account ID
@@ -241,7 +241,7 @@ const Transfers = () => {
                 {fieldErrors.toAccount && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px' }}>{fieldErrors.toAccount}</p>}
               </div>
 
-              {/* Description */}
+              
               <div style={{ marginBottom: '28px' }}>
                 <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '8px', fontSize: '13px' }}>
                   Description (optional)
@@ -290,7 +290,7 @@ const Transfers = () => {
           )}
         </div>
 
-        {/* Recent Transfers */}
+        
         <div className="glass-panel" style={{ padding: '32px' }}>
           <h3 style={{ marginBottom: '24px' }}>Recent Transfers</h3>
           {recentTxs.length === 0 ? (

@@ -1,4 +1,4 @@
-/* LiveAlerts.css — Real-time alert feed panel */
+
 
 .live-alerts-panel {
   display: flex;
@@ -50,7 +50,7 @@
   gap: 8px;
 }
 
-/* Connection indicator pill */
+
 .connection-indicator {
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@
 .mock-btn:hover { color: var(--primary); border-color: var(--primary); }
 .clear-btn:hover { color: var(--danger);  border-color: var(--danger); }
 
-/* Scrollable feed */
+
 .alerts-feed {
   flex: 1;
   overflow-y: auto;
@@ -111,7 +111,7 @@
   padding: 40px 20px;
 }
 
-/* Individual alert card */
+
 .alert-card {
   border-radius: 10px;
   padding: 12px 14px;

@@ -3,13 +3,13 @@ import { ArrowUpRight, ArrowDownRight, CreditCard, Send, Plus, RefreshCw, AlertC
 import { useCustomerAuthContext } from '../auth/AuthContext.jsx';
 import { createApi } from '../services/api.js';
 
-// Formats a number as currency
+
 const fmt = (n) => {
   if (n === null || n === undefined) return '—';
   return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-// Relative time formatter
+
 const relTime = (dateStr) => {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -86,14 +86,14 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard animate-slide-up delay-1">
-      {/* Welcome line */}
+      
       {customer?.name && (
         <div style={{ marginBottom: '8px', color: 'var(--text-muted)', fontSize: '14px' }}>
           Welcome back, <strong style={{ color: 'var(--text-main)' }}>{customer.name}</strong>
         </div>
       )}
 
-      {/* Summary Cards */}
+      
       <div className="grid-cards">
         <div className="glass-panel balance-card">
           <div className="balance-label">Total Balance</div>
@@ -136,7 +136,7 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-grid">
-        {/* Recent Transactions */}
+        
         <div className="glass-panel" style={{ padding: '28px' }}>
           <div className="section-title">
             Recent Transactions
@@ -172,7 +172,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Right column: accounts summary + quick actions */}
+        
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="glass-panel" style={{ padding: '28px' }}>
             <div className="section-title" style={{ marginBottom: '16px' }}>

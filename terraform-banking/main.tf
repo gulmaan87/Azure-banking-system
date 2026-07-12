@@ -1,21 +1,15 @@
-###############################################################################
-# main.tf – Root orchestration: Multi-Region Architecture
-###############################################################################
 
 data "azurerm_client_config" "current" {}
 
 locals {
   name_prefix = "${var.prefix}-${var.project}"
 
-  # Resource groups
   rg1_name = "${local.name_prefix}-rg-region1-${var.env}"
   rg2_name = "${local.name_prefix}-rg-region2-${var.env}"
 
-  # VNets
   vnet1_name = "${local.name_prefix}-vnet-region1-${var.env}"
   vnet2_name = "${local.name_prefix}-vnet-region2-${var.env}"
 
-  # VM size maps
   subnet_vm_sizes1 = {
     for k, v in var.subnets_region1 : k => var.vm_size
   }
@@ -51,9 +45,6 @@ locals {
   common_tags = var.tags
 }
 
-###############################################################################
-# RESOURCE GROUPS (1 per region)
-###############################################################################
 
 resource "azurerm_resource_group" "banking1" {
   name     = local.rg1_name
@@ -67,9 +58,6 @@ resource "azurerm_resource_group" "banking2" {
   tags     = local.common_tags
 }
 
-###############################################################################
-# MODULES – Virtual Networks
-###############################################################################
 
 module "vnet1" {
   source = "./modules/vnet"
@@ -91,9 +79,6 @@ module "vnet2" {
   tags                = local.common_tags
 }
 
-###############################################################################
-# VNET PEERING
-###############################################################################
 
 resource "azurerm_virtual_network_peering" "vnet1_to_vnet2" {
   name                         = "peer-region1-to-region2"
@@ -117,9 +102,6 @@ resource "azurerm_virtual_network_peering" "vnet2_to_vnet1" {
   depends_on = [module.subnets1, module.subnets2]
 }
 
-###############################################################################
-# MODULES – Network Security Groups
-###############################################################################
 
 module "nsg_shared1" {
   source = "./modules/nsg"
@@ -141,9 +123,6 @@ module "nsg_shared2" {
   tags                = local.common_tags
 }
 
-###############################################################################
-# MODULES – Subnets
-###############################################################################
 
 module "subnets1" {
   source = "./modules/subnet"
@@ -167,15 +146,10 @@ module "subnets2" {
   nsg_id               = module.nsg_shared2.nsg_id
 }
 
-###############################################################################
-# MODULES – Virtual Machines
-###############################################################################
 
 module "vms1" {
   source = "./modules/vm"
 
-  # QUOTA: Region 1 (eastasia) 6/6 vCPU used by vms_extended_1 (corebank, database, management)
-  # Base subnets (accounts, payments, customer) are network-only; VMs disabled to stay within quota.
   vm_map              = {}
   name_prefix         = "${local.name_prefix}-r1"
   env                 = var.env
@@ -207,9 +181,6 @@ module "vms2" {
   depends_on = [module.subnets2]
 }
 
-###############################################################################
-# MODULE – Shared Storage Account
-###############################################################################
 
 module "storage" {
   source = "./modules/storage"
@@ -222,11 +193,7 @@ module "storage" {
   tags                = local.common_tags
 }
 
-###############################################################################
-# RBAC - Role Assignments
-###############################################################################
 
-# Grant Region 1 VMs 'Storage Blob Data Contributor' to the Shared Storage Account
 resource "azurerm_role_assignment" "vms1_storage" {
   for_each             = module.vms1.vm_principal_ids
   scope                = module.storage.storage_account_id
@@ -234,7 +201,6 @@ resource "azurerm_role_assignment" "vms1_storage" {
   principal_id         = each.value
 }
 
-# Grant Region 2 VMs 'Storage Blob Data Contributor' to the Shared Storage Account
 resource "azurerm_role_assignment" "vms2_storage" {
   for_each             = module.vms2.vm_principal_ids
   scope                = module.storage.storage_account_id

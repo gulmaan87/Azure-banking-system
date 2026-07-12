@@ -1,31 +1,31 @@
-/**
- * secrets.js — Azure Key Vault Secret Loader
- *
- * HOW IT WORKS (Production — on corebank-1 VM):
- *   1. The VM has a System-Assigned Managed Identity (enabled via Terraform)
- *   2. DefaultAzureCredential picks that up automatically — NO password needed
- *   3. At startup, this module fetches all secrets from Key Vault
- *   4. Merges them into process.env so the rest of the app works normally
- *
- * HOW IT WORKS (Local Dev):
- *   - KEY_VAULT_URL is not set → falls back to .env values, nothing fetched
- *   - No Azure credentials needed on developer machines
- *
- * Secret Name → env var mapping:
- *   db-server          → DB_SERVER
- *   db-name            → DB_NAME
- *   db-user            → DB_USER
- *   db-password        → DB_PASSWORD
- *   azure-tenant-id    → AZURE_TENANT_ID
- *   azure-api-client-id→ AZURE_CLIENT_ID
- *   storage-account-name→ STORAGE_ACCOUNT_NAME
- *   frontend-url       → FRONTEND_URL
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import { SecretClient } from '@azure/keyvault-secrets';
 import { DefaultAzureCredential } from '@azure/identity';
 
-// Map of Key Vault secret names → process.env variable names
+
 const SECRET_MAP = {
   'db-server':            'DB_SERVER',
   'db-name':              'DB_NAME',
@@ -52,10 +52,10 @@ export const loadSecretsFromKeyVault = async () => {
   console.log(`🔐 Loading secrets from Key Vault: ${kvUrl}`);
 
   try {
-    // DefaultAzureCredential automatically uses:
-    //   - VM Managed Identity (on Azure)
-    //   - Azure CLI credentials (local dev with `az login`)
-    //   - Environment variables AZURE_CLIENT_ID / AZURE_CLIENT_SECRET (CI/CD)
+    
+    
+    
+    
     const credential = new DefaultAzureCredential();
     const client     = new SecretClient(kvUrl, credential);
 
@@ -80,6 +80,6 @@ export const loadSecretsFromKeyVault = async () => {
   } catch (err) {
     console.error('❌ Key Vault connection failed:', err.message);
     console.error('   Falling back to .env values. Ensure Managed Identity is enabled on the VM.');
-    // Do NOT throw — fall back to .env so the service still starts
+    
   }
 };

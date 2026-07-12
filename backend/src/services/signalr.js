@@ -1,25 +1,25 @@
-/**
- * signalr.js — Azure SignalR Service broadcaster (server-side)
- *
- * Uses the Azure SignalR Service REST API to broadcast events.
- * This is the correct serverless/REST approach for a Node.js backend.
- *
- * Events emitted:
- *   "AmlAlert"           — triggered when AmlService flags a transaction
- *   "CustomerUpdated"    — triggered when any customer record changes
- *   "TransactionCreated" — triggered when a new transaction is processed
- *   "KycStatusChanged"   — triggered when KYC is approved or rejected
- */
+
+
+
+
+
+
+
+
+
+
+
+
 
 import crypto from 'crypto';
 
 let signalrEndpoint = null;
 let signalrKey = null;
 
-/**
- * Parse Azure SignalR connection string:
- * Endpoint=https://...;AccessKey=...;Version=1.0;
- */
+
+
+
+
 const parseConnectionString = (connStr) => {
   const parts = {};
   connStr.split(';').forEach(part => {
@@ -34,10 +34,10 @@ const parseConnectionString = (connStr) => {
   };
 };
 
-/**
- * Generate a simple JWT access token for the SignalR REST API.
- * Azure SignalR uses HS256 signed JWTs for server-to-service auth.
- */
+
+
+
+
 const generateToken = (endpoint, key) => {
   const header  = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload = Buffer.from(JSON.stringify({
@@ -69,11 +69,11 @@ export const initSignalR = () => {
   }
 };
 
-/**
- * broadcast(event, data)
- * Broadcasts an event to ALL connected clients in the "adminHub" hub.
- * Fails silently in dev mode (no connection string).
- */
+
+
+
+
+
 export const broadcast = async (event, data) => {
   if (!signalrEndpoint || !signalrKey) return;
 
@@ -97,10 +97,10 @@ export const broadcast = async (event, data) => {
   }
 };
 
-/**
- * broadcastToUser(userId, event, data)
- * Sends a targeted event to a specific employee by their Azure AD OID.
- */
+
+
+
+
 export const broadcastToUser = async (userId, event, data) => {
   if (!signalrEndpoint || !signalrKey) return;
 

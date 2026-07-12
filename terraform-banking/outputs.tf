@@ -1,6 +1,3 @@
-###############################################################################
-# outputs.tf – Multi-Region Architecture Outputs
-###############################################################################
 
 output "resource_group1_name" {
   value = azurerm_resource_group.banking1.name

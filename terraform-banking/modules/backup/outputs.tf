@@ -1,6 +1,3 @@
-###############################################################################
-# modules/backup/outputs.tf
-###############################################################################
 
 output "recovery_services_vault_id" {
   description = "Resource ID of the Recovery Services Vault."

@@ -1,10 +1,4 @@
-###############################################################################
-# policy_extended.tf – Additional Azure Policies for Enterprise Governance
-###############################################################################
 
-# -----------------------------------------------------------------------------
-# POLICY 6: Require Managed Identities for specific resource types
-# -----------------------------------------------------------------------------
 resource "azurerm_policy_definition" "require_managed_identity" {
   name         = "banking-require-managed-identity"
   policy_type  = "Custom"
@@ -43,9 +37,6 @@ resource "azurerm_resource_group_policy_assignment" "require_mi_rg1" {
   display_name         = "[Banking] Require Managed Identities – Region 1"
 }
 
-# -----------------------------------------------------------------------------
-# POLICY 7: Audit Subnets without NSGs
-# -----------------------------------------------------------------------------
 resource "azurerm_policy_definition" "audit_subnet_nsg" {
   name         = "banking-audit-subnet-nsg"
   policy_type  = "Custom"

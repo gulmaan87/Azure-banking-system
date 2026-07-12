@@ -1,19 +1,3 @@
-###############################################################################
-# deploy_secrets.ps1
-# Pushes all banking API secrets to Azure Key Vault via Azure CLI.
-#
-# Run ONCE after:
-#   1. `terraform apply` completes (Key Vault is created)
-#   2. App Registrations exist in Azure Portal
-#
-# Usage:
-#   .\deploy_secrets.ps1 `
-#     -KeyVaultName "mohdggulmaanbankkv" `
-#     -DbPassword "YourDbPass123!" `
-#     -ApiClientId "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-#
-# Optional: Pass Sentinel / Storage values or let Terraform auto-populate them
-###############################################################################
 
 param(
     [Parameter(Mandatory=$true)]
@@ -34,7 +18,6 @@ param(
     [Parameter(Mandatory=$false)]
     [string]$StorageConnectionString = "",
 
-    # Phase 6 — Sentinel (auto-populated by Terraform if left blank)
     [Parameter(Mandatory=$false)]
     [string]$LogIngestionEndpoint = "",
 
@@ -48,7 +31,6 @@ param(
 Write-Host "🔐 Azure Bank — Deploying secrets to Key Vault: $KeyVaultName" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
 
-# Ensure logged in
 $account = az account show 2>$null | ConvertFrom-Json
 if (-not $account) {
     Write-Host "❌ Not logged in. Run: az login" -ForegroundColor Red
@@ -56,7 +38,6 @@ if (-not $account) {
 }
 Write-Host "✅ Logged in as: $($account.user.name) | Tenant: $($account.tenantId)" -ForegroundColor Green
 
-# ── Helper ────────────────────────────────────────────────────────────────────
 function Set-KvSecret {
     param([string]$Name, [string]$Value, [string]$ContentType = "text/plain")
     if ([string]::IsNullOrEmpty($Value)) {
@@ -76,38 +57,31 @@ function Set-KvSecret {
     }
 }
 
-# ── Database ──────────────────────────────────────────────────────────────────
 Write-Host "`n📦 Database secrets..." -ForegroundColor Magenta
 Set-KvSecret -Name "db-server"   -Value "10.0.6.4"
 Set-KvSecret -Name "db-name"     -Value "BankingDB"
 Set-KvSecret -Name "db-user"     -Value "bankapp"
 Set-KvSecret -Name "db-password" -Value $DbPassword -ContentType "password"
 
-# ── Azure AD ──────────────────────────────────────────────────────────────────
 Write-Host "`n📦 Azure AD secrets..." -ForegroundColor Magenta
 Set-KvSecret -Name "azure-tenant-id"     -Value $account.tenantId
 Set-KvSecret -Name "azure-api-client-id" -Value $ApiClientId
 
-# ── Storage (Phase 7 — KYC documents) ────────────────────────────────────────
 Write-Host "`n📦 Storage secrets (Phase 7)..." -ForegroundColor Magenta
 Set-KvSecret -Name "storage-account-name"     -Value $StorageAccountName
 Set-KvSecret -Name "storage-connection-string" -Value $StorageConnectionString -ContentType "connection-string"
 
-# ── SignalR (Phase 5) ─────────────────────────────────────────────────────────
 Write-Host "`n📦 SignalR secrets (Phase 5)..." -ForegroundColor Magenta
 Set-KvSecret -Name "signalr-connection-string" -Value $SignalRConnectionString -ContentType "connection-string"
 
-# ── Sentinel / Log Analytics (Phase 6) ───────────────────────────────────────
 Write-Host "`n📦 Sentinel secrets (Phase 6)..." -ForegroundColor Magenta
 Write-Host "   (These are auto-created by Terraform — only set if overriding)" -ForegroundColor DarkGray
 Set-KvSecret -Name "log-ingestion-endpoint" -Value $LogIngestionEndpoint
 Set-KvSecret -Name "log-dcr-immutable-id"   -Value $LogDcrImmutableId
 
-# ── App settings ──────────────────────────────────────────────────────────────
 Write-Host "`n📦 Application settings..." -ForegroundColor Magenta
 Set-KvSecret -Name "frontend-url" -Value $FrontendUrl
 
-# ── Terraform auto-populated secrets (informational) ─────────────────────────
 Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkGray
 Write-Host "ℹ  The following secrets are auto-created by Terraform (no action needed):" -ForegroundColor Cyan
 Write-Host "   • log-ingestion-endpoint   (from azurerm_monitor_data_collection_endpoint)" -ForegroundColor Gray
@@ -115,7 +89,6 @@ Write-Host "   • log-dcr-immutable-id     (from azurerm_monitor_data_collectio
 Write-Host "   • log-workspace-id         (from azurerm_log_analytics_workspace)" -ForegroundColor Gray
 Write-Host "   • storage-connection-string (from data.azurerm_storage_account)" -ForegroundColor Gray
 
-# ── Verify ────────────────────────────────────────────────────────────────────
 Write-Host "`n✅ Done. List all secrets:" -ForegroundColor Cyan
 Write-Host "   az keyvault secret list --vault-name $KeyVaultName --query '[].name' -o table" -ForegroundColor White
 

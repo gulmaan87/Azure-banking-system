@@ -1,27 +1,27 @@
-/**
- * useSignalR.js — React hook for real-time alerts via Azure SignalR
- *
- * How it works:
- *   1. Calls /api/signalr/negotiate to get the SignalR Service URL + token
- *   2. Establishes a WebSocket connection to Azure SignalR Service
- *   3. Returns event handlers so components can subscribe to specific events
- *
- * In dev mode (no SIGNALR_CONNECTION_STRING): 
- *   - Negotiate returns { devMode: true }
- *   - Connection is skipped, returns a mock dispatcher for testing
- */
+
+
+
+
+
+
+
+
+
+
+
+
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 
 let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-// Normalize: Trim trailing slash
+
 if (API_URL.endsWith('/')) {
   API_URL = API_URL.slice(0, -1);
 }
 
-// Check for mixed content issues to fail-fast
+
 const checkMixedContent = (url) => {
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     if (url.startsWith('http://')) {
@@ -43,7 +43,7 @@ export const useSignalR = (onEvent) => {
   const connect = useCallback(async () => {
     try {
       checkMixedContent(API_URL);
-      // Step 1: Ask backend for the negotiate URL
+      
       const negotiate = await fetch(`${API_URL}/signalr/negotiate`).then(r => r.json());
 
       if (negotiate.devMode || !negotiate.url) {
@@ -52,7 +52,7 @@ export const useSignalR = (onEvent) => {
         return;
       }
 
-      // Step 2: Build SignalR connection to Azure SignalR Service
+      
       const connection = new signalR.HubConnectionBuilder()
         .withUrl(negotiate.url, {
           accessTokenFactory: () => negotiate.accessToken,
@@ -61,7 +61,7 @@ export const useSignalR = (onEvent) => {
         .configureLogging(signalR.LogLevel.Warning)
         .build();
 
-      // Step 3: Register all event handlers
+      
       const events = ['AmlAlert', 'CustomerUpdated', 'TransactionCreated', 'KycStatusChanged'];
       events.forEach(event => {
         connection.on(event, (data) => {

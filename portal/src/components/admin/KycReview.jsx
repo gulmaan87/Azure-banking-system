@@ -1,13 +1,13 @@
-/**
- * KycReview.jsx — Admin KYC document review panel
- *
- * Features:
- *   - Lists all pending KYC submissions
- *   - Opens a review drawer for each submission
- *   - Displays document images/PDF previews via SAS URLs (30-min expiry)
- *   - Approve → activates customer; Reject → requires a reason note
- *   - Dev mode: shows mock submissions when API is unavailable
- */
+
+
+
+
+
+
+
+
+
+
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -33,7 +33,7 @@ const STATUS_CONFIG = {
 const fmtDate = (iso) => iso ? new Date(iso).toLocaleString('en-GB', { timeZone: 'UTC' }) + ' UTC' : '—';
 const fmtSize = (b) => b ? `${(b / 1024).toFixed(0)} KB` : '';
 
-// ── Document Preview ─────────────────────────────────────────────────────────
+
 const DocPreview = ({ docType, meta }) => {
   const [expanded, setExpanded] = useState(false);
   const { Icon, label } = DOC_LABELS[docType] || { label: docType, Icon: FileText };
@@ -70,7 +70,7 @@ const DocPreview = ({ docType, meta }) => {
   );
 };
 
-// ── Review Drawer ─────────────────────────────────────────────────────────────
+
 const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) => {
   const { role: empRole } = useAuthContext();
   const [rejectNote, setRejectNote] = useState('');
@@ -85,7 +85,7 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
   return (
     <div className="drawer-overlay" onClick={onClose}>
       <div className="review-drawer" onClick={e => e.stopPropagation()}>
-        {/* Header */}
+        
         <div className="drawer-header">
           <div>
             <h2>KYC Review</h2>
@@ -94,7 +94,7 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
           <button className="close-btn" onClick={onClose}><X size={20} /></button>
         </div>
 
-        {/* Customer Info */}
+        
         <div className="customer-info-strip">
           <div className="info-item">
             <User size={14} />
@@ -124,7 +124,7 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
           )}
         </div>
 
-        {/* Documents */}
+        
         <div className="docs-grid">
           {Object.entries(docs).length > 0 ? (
             Object.entries(docs).map(([docType, meta]) => (
@@ -138,12 +138,12 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
           )}
         </div>
 
-        {/* Submitted by */}
+        
         <div className="submitted-by">
           Submitted by <strong>{submission.submitted_by}</strong>
         </div>
 
-        {/* Action Buttons */}
+        
         {submission.status === 'Pending' && (
           <div className="drawer-actions">
             {!showRejectForm ? (
@@ -208,7 +208,7 @@ const ReviewDrawer = ({ submission, onClose, onApprove, onReject, processing }) 
   );
 };
 
-// ── Main Component ────────────────────────────────────────────────────────────
+
 const KycReview = () => {
   const { getToken } = useAuthContext();
   const [submissions, setSubmissions] = useState([]);
@@ -269,10 +269,10 @@ const KycReview = () => {
 
   return (
     <div className="kyc-review">
-      {/* Toast */}
+      
       {toast && <div className={`kyc-toast ${toast.type}`}>{toast.msg}</div>}
 
-      {/* Header */}
+      
       <div className="kyc-header">
         <div>
           <h1 className="kyc-title"><Shield size={22} /> KYC Review Queue</h1>
@@ -287,7 +287,7 @@ const KycReview = () => {
         </button>
       </div>
 
-      {/* Stats Row */}
+      
       <div className="kyc-stats">
         {[
           { label: 'Pending Review', value: submissions.length, color: '#f59e0b' },
@@ -301,7 +301,7 @@ const KycReview = () => {
         ))}
       </div>
 
-      {/* Submission Cards */}
+      
       {loading ? (
         <div className="kyc-loading">Loading submissions…</div>
       ) : submissions.length === 0 ? (
@@ -348,7 +348,7 @@ const KycReview = () => {
         </div>
       )}
 
-      {/* Review Drawer */}
+      
       {selected && (
         <ReviewDrawer
           submission={selected}
@@ -362,7 +362,7 @@ const KycReview = () => {
   );
 };
 
-// Mock data for dev mode
+
 const MOCK_SUBMISSIONS = [
   {
     id: 1, customer_id: 'CUS-4401', full_name: 'Sarah Al-Mansouri',

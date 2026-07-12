@@ -11,13 +11,13 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import Login from './components/Login';
 import { AuthProvider, CustomerAuthProvider, useCustomerAuthContext } from './auth/AuthContext.jsx';
 
-// ── Customer shell: wraps portal pages; requires CustomerAuthProvider ──────────
+
 function CustomerShell({ setRole }) {
   const { isAuthenticated, login } = useCustomerAuthContext();
   const [activePage, setActivePage] = useState('dashboard');
   const isDev = import.meta.env.DEV;
 
-  // In production, redirect unauthenticated customers to sign-in
+  
   if (!isAuthenticated && !isDev) {
     return (
       <div style={{
@@ -74,7 +74,7 @@ function App() {
   const { accounts } = useMsal();
   const [role, setRole] = useState(null);
 
-  // If MSAL has active accounts, check their groups/claims to transition to Employee or Customer portal
+  
   useEffect(() => {
     if (import.meta.env.DEV) return;
 
@@ -104,7 +104,7 @@ function App() {
     }
   }, [accounts]);
 
-  // Employee portal — isolated from customer context
+  
   if (role === 'employee') {
     return (
       <AuthProvider>
@@ -113,8 +113,8 @@ function App() {
     );
   }
 
-  // Customer portal AND gateway (Login) are both inside CustomerAuthProvider
-  // so Login can call customerDevLogin() via useCustomerAuthContext()
+  
+  
   return (
     <CustomerAuthProvider>
       {!role

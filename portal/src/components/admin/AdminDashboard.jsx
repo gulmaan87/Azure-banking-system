@@ -14,13 +14,13 @@ const AdminDashboard = ({ setRole }) => {
   const api = useMemo(() => createApi(getToken), [getToken]);
   const [activeTab, setActiveTab] = useState('customers');
 
-  // ── Data State ────────────────────────────────────────────────────────────
+  
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(null);
   const [search, setSearch]       = useState('');
 
-  // ── Modal State ───────────────────────────────────────────────────────────
+  
   const [showModal, setShowModal]   = useState(false);
   const [editingId, setEditingId]   = useState(null);
   const [saving, setSaving]         = useState(false);
@@ -28,7 +28,7 @@ const AdminDashboard = ({ setRole }) => {
     full_name: '', email: '', phone: '', address: '', risk_level: 'Low',
   });
 
-  // ── Fetch customers from real API ─────────────────────────────────────────
+  
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -46,14 +46,14 @@ const AdminDashboard = ({ setRole }) => {
     if (activeTab === 'customers') fetchCustomers();
   }, [activeTab, fetchCustomers]);
 
-  // ── Filtered customers by search ──────────────────────────────────────────
+  
   const filtered = customers.filter(c =>
     c.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     c.email?.toLowerCase().includes(search.toLowerCase()) ||
     c.id?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  
   const handleOpenModal = (cus = null) => {
     if (cus) {
       setEditingId(cus.id);
@@ -124,7 +124,7 @@ const AdminDashboard = ({ setRole }) => {
     }
   };
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  
   const getRiskColor = (risk) => {
     switch (risk) {
       case 'Low':      return 'var(--success)';
@@ -154,7 +154,7 @@ const AdminDashboard = ({ setRole }) => {
 
   return (
     <div className="admin-container">
-      {/* Admin Sidebar */}
+      
       <aside className="admin-sidebar">
         <div className="brand" style={{ background: 'linear-gradient(to right, #f87171, #ef4444)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
           <div className="brand-icon" style={{ background: 'linear-gradient(135deg, #ef4444, #991b1b)', boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)' }}>
@@ -190,7 +190,7 @@ const AdminDashboard = ({ setRole }) => {
         </div>
       </aside>
 
-      {/* Main Content */}
+      
       <main className="admin-main animate-slide-up delay-1">
         {empRole === null && (
           <div style={{
@@ -226,7 +226,7 @@ const AdminDashboard = ({ setRole }) => {
 
         {activeTab === 'customers' && (
           <div style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 120px)' }}>
-            {/* Customer Table — takes majority of width */}
+            
             <div style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
             <div className="header">
               <div>
@@ -323,7 +323,7 @@ const AdminDashboard = ({ setRole }) => {
               </div>
             </div>
             </div>
-            {/* Live Alert Feed — fixed right column */}
+            
             <div style={{ width: '320px', flexShrink: 0 }}>
               <LiveAlerts onCustomerRefresh={fetchCustomers} />
             </div>
@@ -360,7 +360,7 @@ const AdminDashboard = ({ setRole }) => {
 
       </main>
 
-      {/* CRUD Modal */}
+      
       {showModal && (
         <div className="admin-modal-overlay">
           <div className="admin-modal glass-panel">

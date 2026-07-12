@@ -1,27 +1,27 @@
-/**
- * KycService.js — KYC submission and review workflow with Azure Blob Storage
- *
- * Document lifecycle:
- *   1. Employee uploads files via multipart POST → Blob Storage (pending/)
- *   2. Each blob URL stored in kyc_submissions.documents_json
- *   3. Admin/Auditor views docs via time-limited SAS URLs (30 min)
- *   4. On approve → blobs moved to approved/, customer activated
- *   5. On reject  → blobs moved to rejected/, deleted after 90d (lifecycle policy)
- */
+
+
+
+
+
+
+
+
+
+
 
 import { query } from '../db/connection.js';
 import * as auditLogger from '../middleware/auditLogger.js';
 import * as BlobStorage from './BlobStorageService.js';
 import { broadcast } from './signalr.js';
 
-// ── Document type labels ────────────────────────────────────────────────────
+
 export const DOC_TYPES = ['passport', 'utility_bill', 'selfie'];
 
-/**
- * submitDocuments(customerId, files, submittedBy, req)
- * Receives multer file objects, uploads each to Blob Storage,
- * stores blob references in SQL kyc_submissions table.
- */
+
+
+
+
+
 export const submitDocuments = async (customerId, files, submittedBy, req = null) => {
   if (!files || files.length === 0) {
     const err = new Error('At least one document is required');
@@ -29,10 +29,10 @@ export const submitDocuments = async (customerId, files, submittedBy, req = null
     throw err;
   }
 
-  // Upload each file to Blob Storage
+  
   const uploadResults = {};
   for (const file of files) {
-    const docType = file.fieldname; // 'passport' | 'utility_bill' | 'selfie'
+    const docType = file.fieldname; 
     if (!DOC_TYPES.includes(docType)) continue;
 
     const result = await BlobStorage.uploadKycDocument(
@@ -52,7 +52,7 @@ export const submitDocuments = async (customerId, files, submittedBy, req = null
     };
   }
 
-  // Persist submission record with blob references
+  
   await query(
     `INSERT INTO kyc_submissions (customer_id, documents_json, status, submitted_by)
      VALUES (@id, @docs, 'Pending', @by)`,
@@ -75,9 +75,9 @@ export const submitDocuments = async (customerId, files, submittedBy, req = null
   return { customerId, docsUploaded: Object.keys(uploadResults), status: 'Pending' };
 };
 
-/**
- * getPendingSubmissions() — returns all pending submissions with fresh SAS URLs
- */
+
+
+
 export const getPendingSubmissions = async () => {
   const result = await query(
     `SELECT ks.*, c.full_name, c.email, c.risk_level
@@ -87,7 +87,7 @@ export const getPendingSubmissions = async () => {
      ORDER BY ks.submitted_at ASC`
   );
 
-  // Generate 30-min SAS URLs for each document so the admin can view them
+  
   const submissions = await Promise.all(
     result.recordset.map(async (sub) => {
       const docs = JSON.parse(sub.documents_json || '{}');
@@ -98,7 +98,7 @@ export const getPendingSubmissions = async () => {
           ...meta,
           viewUrl: meta.blobName
             ? await BlobStorage.generateSasUrl('kyc-documents', meta.blobName, 30)
-            : meta.blobName, // dev mode — already a mock URL
+            : meta.blobName, 
         };
       }
 
@@ -109,9 +109,9 @@ export const getPendingSubmissions = async () => {
   return submissions;
 };
 
-/**
- * getSubmission(submissionId) — single submission with SAS URLs
- */
+
+
+
 export const getSubmission = async (submissionId) => {
   const result = await query(
     `SELECT ks.*, c.full_name, c.email, c.nationality, c.risk_level, c.date_of_birth
@@ -140,10 +140,10 @@ export const getSubmission = async (submissionId) => {
   return { ...sub, documents: docsWithUrls };
 };
 
-/**
- * approve(submissionId, customerId, approvedBy, role, req)
- * Moves blobs from pending/ → approved/, activates customer
- */
+
+
+
+
 export const approve = async (submissionId, customerId, approvedBy, role, req = null) => {
   if (!['ADMIN', 'AUDITOR'].includes(role)) {
     const err = new Error('Only Admins or Auditors can approve KYC'); err.status = 403; throw err;
@@ -152,13 +152,13 @@ export const approve = async (submissionId, customerId, approvedBy, role, req = 
   const sub = await getSubmission(submissionId);
   const docs = sub.documents || {};
 
-  // Move each blob from pending/ to approved/
+  
   for (const [docType, meta] of Object.entries(docs)) {
     if (meta.blobName?.startsWith('pending/')) {
       const newName = meta.blobName.replace('pending/', 'approved/');
       await BlobStorage.moveBlob('kyc-documents', meta.blobName, 'kyc-documents', newName);
 
-      // Update the blobName in the DB record
+      
       docs[docType].blobName = newName;
     }
   }
@@ -185,10 +185,10 @@ export const approve = async (submissionId, customerId, approvedBy, role, req = 
   });
 };
 
-/**
- * reject(submissionId, customerId, rejectedBy, role, note, req)
- * Moves blobs from pending/ → rejected/ (auto-deleted after 90d by lifecycle policy)
- */
+
+
+
+
 export const reject = async (submissionId, customerId, rejectedBy, role, note, req = null) => {
   if (!['ADMIN', 'AUDITOR'].includes(role)) {
     const err = new Error('Only Admins or Auditors can reject KYC'); err.status = 403; throw err;

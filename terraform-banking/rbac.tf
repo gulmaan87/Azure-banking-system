@@ -1,10 +1,6 @@
-###############################################################################
-# rbac.tf – Real Banking System Roles & User Groups
-###############################################################################
 
 data "azuread_client_config" "current_ad" {}
 
-# 1. Bank Administrators (Full management access)
 resource "azuread_group" "bank_admins" {
   display_name     = "Bank Administrators"
   description      = "Senior IT admins with full Contributor access to banking infrastructure."
@@ -24,7 +20,6 @@ resource "azurerm_role_assignment" "bank_admins_rg2" {
   principal_id         = azuread_group.bank_admins.object_id
 }
 
-# 2. Security Auditors (Read-only + monitoring access)
 resource "azuread_group" "security_auditors" {
   display_name     = "Security Auditors"
   description      = "Compliance and security team members who monitor infrastructure."
@@ -44,7 +39,6 @@ resource "azurerm_role_assignment" "security_auditors_rg2" {
   principal_id         = azuread_group.security_auditors.object_id
 }
 
-# 3. Application Developers (Manage VMs and Applications)
 resource "azuread_group" "app_developers" {
   display_name     = "Application Developers"
   description      = "Software engineers managing the banking application deployments."
@@ -64,7 +58,6 @@ resource "azurerm_role_assignment" "app_devs_vm_rg2" {
   principal_id         = azuread_group.app_developers.object_id
 }
 
-# 4. Data Engineers (Manage databases and storage)
 resource "azuread_group" "data_engineers" {
   display_name     = "Data Engineers"
   description      = "Data team managing banking transaction logs and storage."

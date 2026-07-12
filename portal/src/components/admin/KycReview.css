@@ -1,4 +1,4 @@
-/* KycReview.css */
+
 
 .kyc-review {
   display: flex;
@@ -7,7 +7,7 @@
   height: 100%;
 }
 
-/* ── Header ── */
+
 .kyc-header {
   display: flex;
   justify-content: space-between;
@@ -48,7 +48,7 @@
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Stats ── */
+
 .kyc-stats {
   display: flex;
   gap: 16px;
@@ -75,7 +75,7 @@
   font-weight: 600;
 }
 
-/* ── States ── */
+
 .kyc-loading, .kyc-empty {
   display: flex;
   flex-direction: column;
@@ -87,7 +87,7 @@
   min-height: 200px;
 }
 
-/* ── Submission cards grid ── */
+
 .submissions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -192,7 +192,7 @@
 }
 .review-btn:hover { background: rgba(99,102,241,0.22); }
 
-/* ── Toast ── */
+
 .kyc-toast {
   position: fixed;
   bottom: 32px;
@@ -217,7 +217,7 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* ── Review Drawer ── */
+
 .drawer-overlay {
   position: fixed;
   inset: 0;
@@ -265,7 +265,7 @@
 }
 .close-btn:hover { color: var(--text-main); }
 
-/* Customer info strip */
+
 .customer-info-strip {
   display: flex;
   flex-wrap: wrap;
@@ -283,7 +283,7 @@
 }
 .info-label { color: var(--text-muted); font-size: 12px; }
 
-/* Documents grid */
+
 .docs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -392,7 +392,7 @@
   color: var(--text-muted);
 }
 
-/* Action Buttons */
+
 .drawer-actions {
   padding: 16px 28px 28px;
   display: flex;
@@ -438,7 +438,7 @@
 .btn-reject:hover:not(:disabled) { background: rgba(239,68,68,0.22); }
 .btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Reject form */
+
 .reject-form {
   width: 100%;
   display: flex;

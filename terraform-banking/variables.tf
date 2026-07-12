@@ -1,8 +1,4 @@
-###############################################################################
-# variables.tf – All configurable inputs for the banking project
-###############################################################################
 
-# ── Identity / naming ────────────────────────────────────────────────────────
 
 variable "prefix" {
   description = "Project owner / team prefix used in all resource names."
@@ -27,7 +23,6 @@ variable "env" {
   }
 }
 
-# ── Region ───────────────────────────────────────────────────────────────────
 
 variable "location" {
   description = "Primary Azure region. eastasia for Student Subscription support."
@@ -41,7 +36,6 @@ variable "location2" {
   default     = "southeastasia"
 }
 
-# ── Networking ───────────────────────────────────────────────────────────────
 
 variable "vnet_address_space" {
   description = "CIDR block for the primary virtual network (eastasia)."
@@ -75,7 +69,6 @@ variable "subnets_region2" {
   }
 }
 
-# ── NEW: Extended Subnets (Region 1 enterprise additions) ────────────────────
 
 variable "subnets_region1_extended" {
   description = "Additional enterprise subnets for eastasia region (Zero Trust segmentation)."
@@ -89,7 +82,6 @@ variable "subnets_region1_extended" {
   }
 }
 
-# ── NEW: Extended Subnets (Region 2 enterprise additions) ────────────────────
 
 variable "subnets_region2_extended" {
   description = "Additional enterprise subnets for southeastasia region."
@@ -99,7 +91,6 @@ variable "subnets_region2_extended" {
   }
 }
 
-# ── NEW: Azure Bastion Subnet (must be named AzureBastionSubnet per Azure) ───
 
 variable "bastion_subnet_cidr" {
   description = "CIDR for the AzureBastionSubnet (must be /27 or larger)."
@@ -107,7 +98,6 @@ variable "bastion_subnet_cidr" {
   default     = "10.0.9.0/27"
 }
 
-# ── NEW: Azure Firewall Subnet (must be named AzureFirewallSubnet per Azure) ─
 
 variable "firewall_subnet_cidr" {
   description = "CIDR for the AzureFirewallSubnet (must be /26 or larger)."
@@ -115,7 +105,6 @@ variable "firewall_subnet_cidr" {
   default     = "10.0.0.0/26"
 }
 
-# ── Feature Flags (cost controls for student subscription) ───────────────────
 
 variable "enable_bastion" {
   description = "Deploy Azure Bastion for secure VM access. Set false to save cost."
@@ -135,7 +124,6 @@ variable "enable_sentinel" {
   default     = true
 }
 
-# ── Virtual Machines ─────────────────────────────────────────────────────────
 
 variable "vm_count_per_subnet" {
   description = "Number of VMs per active subnet. Constrained to 1 due to vCPU quota."
@@ -168,7 +156,6 @@ variable "os_disk_size_gb" {
   default     = 64
 }
 
-# ── Storage ───────────────────────────────────────────────────────────────────
 
 variable "storage_account_tier" {
   description = "Performance tier of the shared storage account."
@@ -182,7 +169,6 @@ variable "storage_replication_type" {
   default     = "LRS"
 }
 
-# ── Storage ───────────────────────────────────────────────────────────────────
 
 variable "storage_account_name" {
   description = "Name of the existing Azure Storage Account for KYC documents."
@@ -190,7 +176,6 @@ variable "storage_account_name" {
   default     = "mohdggulmaanbankr1"
 }
 
-# ── Key Vault ─────────────────────────────────────────────────────────────────
 
 variable "key_vault_sku" {
   description = "SKU for Key Vault (standard | premium)."
@@ -204,7 +189,6 @@ variable "key_vault_soft_delete_days" {
   default     = 7
 }
 
-# ── Log Analytics ─────────────────────────────────────────────────────────────
 
 variable "log_analytics_sku" {
   description = "SKU for the Log Analytics workspace."
@@ -218,7 +202,6 @@ variable "log_analytics_retention_days" {
   default     = 30
 }
 
-# ── Tags ─────────────────────────────────────────────────────────────────────
 
 variable "tags" {
   description = "Common tags applied to every resource."
@@ -235,7 +218,6 @@ variable "tags" {
   }
 }
 
-# ── Key Vault Secrets ─────────────────────────────────────────────────────────
 
 variable "db_password" {
   description = "SQL Server password for bankapp user — stored in Key Vault, never logged."

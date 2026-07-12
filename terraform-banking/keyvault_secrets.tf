@@ -1,12 +1,4 @@
-###############################################################################
-# keyvault_secrets.tf – Populate Key Vault with all banking API secrets
-#                       and grant corebank-1 VM Managed Identity read access.
-###############################################################################
 
-###############################################################################
-# 1. BANK API SECRETS
-#    Stored in Key Vault — never in .env or source code on the VM
-###############################################################################
 
 resource "azurerm_key_vault_secret" "db_server" {
   name         = "db-server"
@@ -81,23 +73,7 @@ resource "azurerm_key_vault_secret" "frontend_url" {
   depends_on = [azurerm_key_vault.this]
 }
 
-# resource "azurerm_key_vault_secret" "log_ingestion_endpoint" {
-#   name         = "log-ingestion-endpoint"
-#   value        = azurerm_monitor_data_collection_endpoint.banking.logs_ingestion_endpoint
-#   key_vault_id = azurerm_key_vault.this.id
-#   tags         = local.common_tags
-# 
-#   depends_on = [azurerm_key_vault.this, azurerm_monitor_data_collection_endpoint.banking]
-# }
 
-# resource "azurerm_key_vault_secret" "log_dcr_immutable_id" {
-#   name         = "log-dcr-immutable-id"
-#   value        = azurerm_monitor_data_collection_rule.banking_audit.immutable_id
-#   key_vault_id = azurerm_key_vault.this.id
-#   tags         = local.common_tags
-# 
-#   depends_on = [azurerm_key_vault.this, azurerm_monitor_data_collection_rule.banking_audit]
-# }
 
 resource "azurerm_key_vault_secret" "log_workspace_id" {
   name         = "log-workspace-id"
@@ -108,17 +84,11 @@ resource "azurerm_key_vault_secret" "log_workspace_id" {
   depends_on = [azurerm_key_vault.this, azurerm_log_analytics_workspace.this]
 }
 
-###############################################################################
-# 2. GRANT corebank-1 VM MANAGED IDENTITY → KEY VAULT SECRET READ ACCESS
-#    The VM uses its System-Assigned Managed Identity — NO PASSWORD NEEDED.
-###############################################################################
 
 resource "azurerm_key_vault_access_policy" "corebank_vm" {
   key_vault_id = azurerm_key_vault.this.id
   tenant_id    = data.azurerm_client_config.current_kv.tenant_id
 
-  # The Principal ID of the corebank-1 VM's System-Assigned Managed Identity
-  # Fetched dynamically from the vms_extended_1 module output
   object_id = lookup(
     module.vms_extended_1.vm_principal_ids,
     "corebank-1",
@@ -130,9 +100,6 @@ resource "azurerm_key_vault_access_policy" "corebank_vm" {
   depends_on = [azurerm_key_vault.this]
 }
 
-###############################################################################
-# 3. OUTPUT: Key Vault URI (needed for backend .env on the VM)
-###############################################################################
 
 output "key_vault_uri" {
   value       = azurerm_key_vault.this.vault_uri

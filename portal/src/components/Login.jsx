@@ -12,7 +12,7 @@ import { MOCK_CUSTOMERS } from '../auth/useAuth.js';
 import { useCustomerAuthContext } from '../auth/AuthContext.jsx';
 import './Login.css';
 
-// ── Inner component that has access to CustomerAuthContext ─────────────────────
+
 const LoginInner = ({ setRole }) => {
   const { instance } = useMsal();
   const { login: customerDevLogin } = useCustomerAuthContext();
@@ -31,7 +31,7 @@ const LoginInner = ({ setRole }) => {
           }
         });
       } catch {
-        // Ignore storage access errors
+        void 0;
       }
     });
   };
@@ -56,15 +56,15 @@ const LoginInner = ({ setRole }) => {
   const handleCustomerLogin = async () => {
     setError('');
     if (isDev) {
-      // DEV: select mock customer and enter portal
+      
       customerDevLogin(devCustomerPick);
       setRole('customer');
     } else {
-      // Production: real MSAL redirect for customer
+      
       setLoading(true);
       try {
         clearMsalKeys();
-        setRole('customer'); // CustomerShell handles unauthenticated redirect
+        setRole('customer'); 
       } catch (err) {
         setError(err.message || 'Authentication failed. Please try again.');
       } finally {
@@ -139,7 +139,7 @@ const LoginInner = ({ setRole }) => {
         )}
 
         <div className="portal-selection">
-          {/* Customer portal button */}
+          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {isDev && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -205,7 +205,7 @@ const LoginInner = ({ setRole }) => {
   );
 };
 
-// ── Outer wrapper — must be inside CustomerAuthProvider ───────────────────────
+
 const Login = ({ setRole }) => (
   <LoginInner setRole={setRole} />
 );

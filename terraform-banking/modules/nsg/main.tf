@@ -1,8 +1,3 @@
-###############################################################################
-# modules/nsg/main.tf – Single Shared Network Security Group
-#
-# NSG naming:  <prefix>-banking-nsg-shared-<env>
-###############################################################################
 
 resource "azurerm_network_security_group" "this" {
   name                = "${var.name_prefix}-nsg-shared-${var.env}"
@@ -10,7 +5,6 @@ resource "azurerm_network_security_group" "this" {
   location            = var.location
   tags                = merge(var.tags, { Purpose = "Shared NSG to optimize Student Subscription quota" })
 
-  # ── INBOUND: allow health probes from Azure Load Balancer ─────────────────
   security_rule {
     name                       = "Allow-AzureLoadBalancer-Inbound"
     priority                   = 100
@@ -23,8 +17,6 @@ resource "azurerm_network_security_group" "this" {
     destination_address_prefix = "*"
   }
 
-  # ── INBOUND: allow ICMP (ping) across peered VNets ───────────
-  # Covers both 10.0.0.0/16 (eastasia) and 10.1.0.0/16 (southeastasia)
   security_rule {
     name                       = "Allow-CrossVNet-ICMP"
     priority                   = 105
@@ -37,7 +29,6 @@ resource "azurerm_network_security_group" "this" {
     destination_address_prefix = "*"
   }
 
-  # ── INBOUND: allow intra-VNet traffic ────────────────────────
   security_rule {
     name                       = "Allow-Intra-VNet-Inbound"
     priority                   = 110
@@ -50,7 +41,6 @@ resource "azurerm_network_security_group" "this" {
     destination_address_prefix = "VirtualNetwork"
   }
 
-  # ── INBOUND DEFAULT DENY (lowest priority) ─────────────────────────────────
   security_rule {
     name                       = "Deny-All-Inbound"
     priority                   = 4096
@@ -63,7 +53,6 @@ resource "azurerm_network_security_group" "this" {
     destination_address_prefix = "*"
   }
 
-  # ── OUTBOUND DEFAULT ALLOW (Azure management traffic) ─────────────────────
   security_rule {
     name                       = "Allow-Azure-Outbound"
     priority                   = 4000

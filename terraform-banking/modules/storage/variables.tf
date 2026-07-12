@@ -1,6 +1,3 @@
-###############################################################################
-# modules/storage/variables.tf
-###############################################################################
 
 variable "name" {
   description = "Storage account name (3–24 chars, lowercase alphanumeric)."

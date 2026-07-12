@@ -17,14 +17,14 @@ async function runSqlFile(pool, filePath) {
   console.log(`Running SQL file: ${path.basename(filePath)}`);
   const content = fs.readFileSync(filePath, 'utf8');
   
-  // Split the file by GO (case-insensitive, on its own line)
+  
   const batches = content.split(/\r?\nGO\r?\n|\r?\ngo\r?\n/i);
   
   for (let i = 0; i < batches.length; i++) {
     const rawBatch = batches[i].trim();
     if (!rawBatch) continue;
     
-    // Skip CREATE DATABASE and USE statements as they are handled or redundant
+    
     if (rawBatch.toUpperCase().startsWith('CREATE DATABASE') || rawBatch.toUpperCase().startsWith('USE ')) {
       continue;
     }
@@ -66,7 +66,7 @@ async function main() {
     pool = await sql.connect(masterConfig);
     console.log('Connected. Ensuring BankingDB database exists...');
     
-    // Create database if not exists
+    
     await pool.request().query(`
       IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'BankingDB')
       BEGIN

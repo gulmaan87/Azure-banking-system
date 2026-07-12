@@ -4,7 +4,7 @@ import { broadcast } from './signalr.js';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 
-// ── Validation schema ─────────────────────────────────────────────────────
+
 const CustomerSchema = z.object({
   full_name:     z.string().min(2).max(100),
   email:         z.string().email(),
@@ -15,13 +15,13 @@ const CustomerSchema = z.object({
   risk_level:    z.enum(['Low','Medium','High','Critical']).default('Low'),
 });
 
-// Custom error classes
+
 class ConflictError    extends Error { constructor(msg) { super(msg); this.status = 409; } }
 class NotFoundError    extends Error { constructor(msg) { super(msg); this.status = 404; } }
 class BusinessRuleError extends Error { constructor(msg) { super(msg); this.status = 422; } }
 class ForbiddenError   extends Error { constructor(msg) { super(msg); this.status = 403; } }
 
-// ── CustomerService ───────────────────────────────────────────────────────
+
 export const getAll = async () => {
   const result = await query(`
     SELECT c.*, 
@@ -46,7 +46,7 @@ export const getById = async (id) => {
 export const create = async (data, performedBy, req = null) => {
   const validated = CustomerSchema.parse(data);
 
-  // Duplicate email check
+  
   const exists = await query('SELECT id FROM customers WHERE email = @email', { email: validated.email });
   if (exists.recordset.length) throw new ConflictError('Email already registered');
 
@@ -58,7 +58,7 @@ export const create = async (data, performedBy, req = null) => {
     { id, ...validated }
   );
 
-  // Create default Savings account at $0
+  
   const accId = `ACC-${Math.floor(10000 + Math.random() * 90000)}`;
   await query(
     `INSERT INTO accounts (id, customer_id, account_type, balance) VALUES (@accId, @customerId, 'Savings', 0.00)`,
@@ -74,13 +74,13 @@ export const update = async (id, data, role, performedBy, req = null) => {
   const customer = await getById(id);
 
   if (role === 'AUDITOR') {
-    // Auditors can ONLY update risk_level
+    
     if (!data.risk_level) throw new BusinessRuleError('Auditors can only update risk_level');
     await query('UPDATE customers SET risk_level = @risk, updated_at = GETUTCDATE() WHERE id = @id',
       { risk: data.risk_level, id });
     await auditLogger.log('UPDATE_RISK_LEVEL', 'customer', id, performedBy, { risk_level: data.risk_level }, req);
   } else {
-    // Admins can update all fields
+    
     const validated = CustomerSchema.partial().parse(data);
     await query(
       `UPDATE customers 

@@ -1,6 +1,3 @@
-###############################################################################
-# modules/monitor/outputs.tf
-###############################################################################
 
 output "log_analytics_workspace_id" {
   description = "Resource ID of the Log Analytics workspace."

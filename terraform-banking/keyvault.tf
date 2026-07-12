@@ -1,6 +1,3 @@
-###############################################################################
-# keyvault.tf – Enterprise Secrets Management
-###############################################################################
 
 data "azurerm_client_config" "current_kv" {}
 
@@ -16,7 +13,6 @@ resource "azurerm_key_vault" "this" {
   sku_name = var.key_vault_sku
   tags     = local.common_tags
 
-  # Allow current user to manage Key Vault
   access_policy {
     tenant_id = data.azurerm_client_config.current_kv.tenant_id
     object_id = data.azurerm_client_config.current_kv.object_id

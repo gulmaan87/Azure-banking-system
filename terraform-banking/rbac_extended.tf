@@ -1,8 +1,4 @@
-###############################################################################
-# rbac_extended.tf – Extended RBAC Groups for Hierarchical Chain of Command
-###############################################################################
 
-# 1. Executives (Subscription Reader level)
 resource "azuread_group" "executives" {
   display_name     = "Executives"
   description      = "Executive Leadership team with global read visibility."
@@ -22,7 +18,6 @@ resource "azurerm_role_assignment" "executives_rg2" {
   principal_id         = azuread_group.executives.object_id
 }
 
-# 2. Regional Authorities (Read + Monitor)
 resource "azuread_group" "regional_auth" {
   display_name     = "Regional Authorities"
   description      = "Regional managers monitoring infrastructure health."
@@ -36,7 +31,6 @@ resource "azurerm_role_assignment" "regional_auth_rg1" {
   principal_id         = azuread_group.regional_auth.object_id
 }
 
-# 3. Department Heads (Contributor limited)
 resource "azuread_group" "dept_heads" {
   display_name     = "Department Heads"
   description      = "Department leaders managing their specific teams."
@@ -44,7 +38,6 @@ resource "azuread_group" "dept_heads" {
   security_enabled = true
 }
 
-# 4. Branch Managers (Reader)
 resource "azuread_group" "branch_managers" {
   display_name     = "Branch Managers"
   description      = "Branch-level management and oversight."
@@ -52,7 +45,6 @@ resource "azuread_group" "branch_managers" {
   security_enabled = true
 }
 
-# 5. Banking Employees (Basic Users)
 resource "azuread_group" "banking_employees" {
   display_name     = "Banking Employees"
   description      = "Standard banking operators."
@@ -60,7 +52,6 @@ resource "azuread_group" "banking_employees" {
   security_enabled = true
 }
 
-# 6. SOC Analysts (Security Reader)
 resource "azuread_group" "soc_analysts" {
   display_name     = "SOC Analysts"
   description      = "Security Operations Center monitoring identity and security."
@@ -80,7 +71,6 @@ resource "azurerm_role_assignment" "soc_analysts_rg2" {
   principal_id         = azuread_group.soc_analysts.object_id
 }
 
-# 7. DevOps Engineers (VM Contributor)
 resource "azuread_group" "devops_engineers" {
   display_name     = "DevOps Engineers"
   description      = "Automation and infrastructure deployment."

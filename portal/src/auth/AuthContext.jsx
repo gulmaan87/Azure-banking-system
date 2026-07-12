@@ -1,14 +1,14 @@
-/**
- * AuthContext.jsx
- * Provides employee auth state and customer auth state to component trees.
- *
- * Employee portal:  wrap with <AuthProvider>  → useAuthContext()
- * Customer portal:  wrap with <CustomerAuthProvider> → useCustomerAuthContext()
- */
+
+
+
+
+
+
+
 import React, { createContext, useContext } from 'react';
 import { useEmployeeAuth, useCustomerAuth } from '../auth/useAuth.js';
 
-// ── Employee Context ──────────────────────────────────────────────────────────
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -22,7 +22,7 @@ export const useAuthContext = () => {
   return ctx;
 };
 
-// ── Customer Context ──────────────────────────────────────────────────────────
+
 const CustomerAuthContext = createContext(null);
 
 export const CustomerAuthProvider = ({ children }) => {

@@ -1,14 +1,14 @@
-/**
- * TransactionsDashboard.jsx
- *
- * Phase 8: Comprehensive transaction monitoring.
- * Features:
- *  - High-level KPI stats (Volume today, flagged txs)
- *  - 30-day volume chart using Recharts
- *  - Global paginated transaction feed
- *  - Multi-field filters (Search, Type, Min Amount, Flagged Only)
- *  - Real-time updates via SignalR (simulated via refresh here)
- */
+
+
+
+
+
+
+
+
+
+
+
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
@@ -33,7 +33,7 @@ const TransactionsDashboard = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Pagination & Filters
+  
   const [page, setPage] = useState(1);
   const limit = 50;
   const [filters, setFilters] = useState({
@@ -93,7 +93,7 @@ const TransactionsDashboard = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    setPage(1); // reset to first page on filter change
+    setPage(1); 
   };
 
   const chartData = useMemo(() => {
@@ -118,7 +118,7 @@ const TransactionsDashboard = () => {
         </button>
       </div>
 
-      {/* Stats Row */}
+      
       <div className="tx-stats-row">
         <div className="tx-stat-card">
           <div className="tx-stat-title"><DollarSign size={14} color="#10b981" /> Today's Volume</div>
@@ -145,7 +145,7 @@ const TransactionsDashboard = () => {
 
       <div className="tx-content">
         <div className="tx-main-col">
-          {/* Chart */}
+          
           <div className="tx-chart-card">
             <div style={{ marginBottom: '12px', fontWeight: 600, color: 'var(--text-muted)', fontSize: '13px' }}>
               30-Day Transaction Volume (USD)
@@ -165,7 +165,7 @@ const TransactionsDashboard = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Table */}
+          
           <div className="tx-table-container">
             <div className="tx-filters">
               <div className="tx-filter-group" style={{ flex: 1, minWidth: '200px' }}>
@@ -250,7 +250,7 @@ const TransactionsDashboard = () => {
               </tbody>
             </table>
             
-            {/* Pagination Controls */}
+            
             <div className="pagination">
               <span style={{ fontSize: '12px', color: '#888' }}>
                 Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} transactions

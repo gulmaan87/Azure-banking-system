@@ -1,22 +1,6 @@
-###############################################################################
-# policy.tf – Azure Policy for Banking Compliance
-#
-# Policies applied:
-#   1. Deny Public IP on NICs
-#   2. Require Mandatory Tags on Resources
-#   3. Require HTTPS on Storage Accounts
-#   4. Enforce Allowed Locations (eastasia + southeastasia only)
-#   5. Deny Unencrypted OS Disks
-#   6. Audit VMs without Managed Identity
-###############################################################################
 
-# Get current subscription to use as scope
 data "azurerm_subscription" "current" {}
 
-###############################################################################
-# POLICY 1: Deny Public IP Addresses on Network Interfaces
-# No VM in a banking system should ever have a public-facing NIC
-###############################################################################
 
 resource "azurerm_policy_definition" "deny_public_ip" {
   name         = "banking-deny-public-ip"
@@ -41,26 +25,8 @@ resource "azurerm_policy_definition" "deny_public_ip" {
   })
 }
 
-# resource "azurerm_resource_group_policy_assignment" "deny_public_ip_rg1" {
-#   name                 = "banking-deny-public-ip-r1"
-#   resource_group_id    = azurerm_resource_group.banking1.id
-#   policy_definition_id = azurerm_policy_definition.deny_public_ip.id
-#   description          = "Deny public IPs in Region 1 resource group."
-#   display_name         = "[Banking] Deny Public IP – Region 1"
-# }
 
-# resource "azurerm_resource_group_policy_assignment" "deny_public_ip_rg2" {
-#   name                 = "banking-deny-public-ip-r2"
-#   resource_group_id    = azurerm_resource_group.banking2.id
-#   policy_definition_id = azurerm_policy_definition.deny_public_ip.id
-#   description          = "Deny public IPs in Region 2 resource group."
-#   display_name         = "[Banking] Deny Public IP – Region 2"
-# }
 
-###############################################################################
-# POLICY 2: Require Mandatory Tags (Owner, Environment, CostCenter)
-# Every resource must have these tags for cost management and accountability
-###############################################################################
 
 resource "azurerm_policy_definition" "require_tags" {
   name         = "banking-require-mandatory-tags"
@@ -111,10 +77,6 @@ resource "azurerm_resource_group_policy_assignment" "require_tags_rg2" {
   display_name         = "[Banking] Require Tags – Region 2"
 }
 
-###############################################################################
-# POLICY 3: Require Secure Transfer (HTTPS) on Storage Accounts
-# Built-in policy: Secure transfer should be enabled for storage accounts
-###############################################################################
 
 data "azurerm_policy_definition" "secure_transfer_storage" {
   display_name = "Secure transfer to storage accounts should be enabled"
@@ -127,10 +89,6 @@ resource "azurerm_resource_group_policy_assignment" "secure_transfer_rg1" {
   display_name         = "[Banking] Require HTTPS on Storage – Region 1"
 }
 
-###############################################################################
-# POLICY 4: Allowed Locations — Restrict to eastasia & southeastasia Only
-# Prevents accidental resource creation in non-approved, expensive regions
-###############################################################################
 
 data "azurerm_policy_definition" "allowed_locations" {
   display_name = "Allowed locations"
@@ -162,10 +120,6 @@ resource "azurerm_resource_group_policy_assignment" "allowed_locations_rg2" {
   })
 }
 
-###############################################################################
-# POLICY 5: Audit VMs without Managed Identity
-# All VMs should use SystemAssigned identity for secure, password-less auth
-###############################################################################
 
 resource "azurerm_policy_definition" "audit_vm_managed_identity" {
   name         = "banking-audit-vm-managed-identity"

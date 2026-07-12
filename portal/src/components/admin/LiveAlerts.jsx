@@ -1,7 +1,7 @@
-/**
- * LiveAlerts.jsx — Real-time AML & activity feed for the Admin Dashboard
- * Subscribes to SignalR events and shows a live scrolling alert stream.
- */
+
+
+
+
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { AlertTriangle, Zap, User, DollarSign, Shield, Wifi, WifiOff } from 'lucide-react';
@@ -78,9 +78,9 @@ const LiveAlerts = ({ onCustomerRefresh }) => {
 
   const handleEvent = useCallback((event, data) => {
     const alert = eventToAlert(event, data);
-    setAlerts(prev => [alert, ...prev].slice(0, 100)); // keep last 100
+    setAlerts(prev => [alert, ...prev].slice(0, 100)); 
 
-    // Auto-refresh customer list when customer data changes
+    
     if (event === 'CustomerUpdated') {
       onCustomerRefresh?.();
     }
@@ -88,14 +88,14 @@ const LiveAlerts = ({ onCustomerRefresh }) => {
 
   const { connected, devMode } = useSignalR(handleEvent);
 
-  // Auto-scroll to top when new alert arrives
+  
   useEffect(() => {
     feedRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [alerts.length]);
 
   const clearAlerts = () => setAlerts([]);
 
-  // ── Simulate events in dev mode for demo ───────────────────────────────
+  
   const injectMockAlert = () => {
     const mocks = [
       { event: 'AmlAlert', data: {

@@ -1,26 +1,6 @@
-###############################################################################
-# sentinel.tf – Extends monitoring.tf with:
-#   1. Data Collection Endpoint (DCE) + Data Collection Rule (DCR)
-#      for banking audit logs → Custom Log table in Log Analytics
-#   2. VM Diagnostic Settings → forwards VM metrics/logs to Workspace
-#   3. Key Vault Diagnostic Settings → audit KV access in Sentinel
-#   4. SignalR Diagnostic Settings
-#   5. Sentinel Analytics Rules — AML, brute force, suspicious admin actions
-###############################################################################
 
-###############################################################################
-# 1. DATA COLLECTION ENDPOINT
-#    The backend API calls this HTTPS endpoint to POST audit log batches
-###############################################################################
 
-# resource "azurerm_monitor_data_collection_endpoint" "banking" { ... }
-# resource "azurerm_monitor_data_collection_rule" "banking_audit" { ... }
-# resource "azurerm_role_assignment" "corebank_dcr" { ... }
 
-###############################################################################
-# 4. VM DIAGNOSTIC SETTINGS → Log Analytics
-#    Forwards VM-level logs (syslog, perf counters) from corebank-1 + database-1
-###############################################################################
 
 resource "azurerm_monitor_diagnostic_setting" "keyvault" {
   name                       = "kv-diag-to-sentinel"
@@ -42,20 +22,12 @@ resource "azurerm_monitor_diagnostic_setting" "signalr" {
   target_resource_id         = azurerm_signalr_service.banking.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 
-  # ConnectivityLogs is not supported on Free/Standard tier SignalR
-  # enabled_log {
-  #   category = "ConnectivityLogs"
-  # }
   metric {
     category = "AllMetrics"
     enabled  = true
   }
 }
 
-###############################################################################
-# 5. SENTINEL ANALYTICS RULES
-#    Auto-trigger incidents in Sentinel based on KQL queries
-###############################################################################
 
 resource "time_sleep" "wait_for_sentinel" {
   count           = var.enable_sentinel ? 1 : 0
@@ -65,7 +37,6 @@ resource "time_sleep" "wait_for_sentinel" {
 
 
 
-# Rule 1: Critical AML Flag — account flagged as structuring
 resource "azurerm_sentinel_alert_rule_scheduled" "aml_critical" {
   count = var.enable_sentinel ? 1 : 0
 
@@ -106,7 +77,6 @@ resource "azurerm_sentinel_alert_rule_scheduled" "aml_critical" {
   ]
 }
 
-# Rule 2: Mass customer deletions (possible insider threat)
 resource "azurerm_sentinel_alert_rule_scheduled" "mass_delete" {
   count = var.enable_sentinel ? 1 : 0
 
@@ -146,7 +116,6 @@ resource "azurerm_sentinel_alert_rule_scheduled" "mass_delete" {
   ]
 }
 
-# Rule 3: After-hours admin activity (outside 06:00–22:00 UTC)
 resource "azurerm_sentinel_alert_rule_scheduled" "after_hours" {
   count = var.enable_sentinel ? 1 : 0
 
@@ -187,7 +156,6 @@ resource "azurerm_sentinel_alert_rule_scheduled" "after_hours" {
   ]
 }
 
-# Rule 4: Single IP performing actions on many accounts
 resource "azurerm_sentinel_alert_rule_scheduled" "ip_enumeration" {
   count = var.enable_sentinel ? 1 : 0
 
@@ -227,21 +195,10 @@ resource "azurerm_sentinel_alert_rule_scheduled" "ip_enumeration" {
   ]
 }
 
-###############################################################################
-# 6. OUTPUTS
-###############################################################################
 
 output "log_analytics_workspace_id" {
   value       = azurerm_log_analytics_workspace.this.id
   description = "Log Analytics Workspace ID — needed for backend LOG_ANALYTICS_WORKSPACE_ID"
 }
 
-# output "data_collection_endpoint_url" {
-#   value       = azurerm_monitor_data_collection_endpoint.banking.logs_ingestion_endpoint
-#   description = "Set this as LOG_INGESTION_ENDPOINT in backend .env"
-# }
 
-# output "data_collection_rule_immutable_id" {
-#   value       = azurerm_monitor_data_collection_rule.banking_audit.immutable_id
-#   description = "Set this as LOG_DCR_IMMUTABLE_ID in backend .env"
-# }

@@ -1,9 +1,9 @@
-/**
- * AuditTrail.jsx — Admin portal view of the SQL audit_log table
- *
- * Shows a searchable, filterable table of every action performed by every employee.
- * Colour-coded by action type. Links to Sentinel for deep investigation.
- */
+
+
+
+
+
+
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Search, RefreshCw, ExternalLink, AlertTriangle, Download } from 'lucide-react';
@@ -38,7 +38,7 @@ const AuditTrail = () => {
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState(null);
   const [search,   setSearch]   = useState('');
-  const [filter,   setFilter]   = useState('all');   // action group filter
+  const [filter,   setFilter]   = useState('all');   
   const [page,     setPage]     = useState(1);
   const PAGE_SIZE = 25;
 
@@ -50,7 +50,7 @@ const AuditTrail = () => {
       const res = await api.audit.getAll();
       setLogs(res.data || []);
     } catch (err) {
-      // If API doesn't exist yet, show mock data so the UI is visible
+      
       if (err?.response?.status === 404 || err?.code === 'ERR_NETWORK') {
         setLogs(MOCK_LOGS);
       } else {
@@ -63,7 +63,7 @@ const AuditTrail = () => {
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
-  // Client-side filter + search
+  
   const filtered = logs.filter(log => {
     const matchSearch = !search || [log.action, log.entity_id, log.performed_by, log.ip_address]
       .some(f => f?.toLowerCase().includes(search.toLowerCase()));
@@ -87,7 +87,7 @@ const AuditTrail = () => {
 
   return (
     <div className="audit-trail">
-      {/* Header */}
+      
       <div className="audit-header">
         <div>
           <h1 className="audit-title">
@@ -111,7 +111,7 @@ const AuditTrail = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      
       <div className="audit-filters">
         <div className="search-box">
           <Search size={14} />
@@ -134,7 +134,7 @@ const AuditTrail = () => {
         </div>
       </div>
 
-      {/* Stats bar */}
+      
       <div className="audit-stats">
         <span className="stat">{filtered.length} events</span>
         <span className="stat aml">{logs.filter(l => l.action === 'AML_FLAG').length} AML flags</span>
@@ -142,7 +142,7 @@ const AuditTrail = () => {
         <span className="stat">{[...new Set(logs.map(l => l.performed_by))].length} employees</span>
       </div>
 
-      {/* Table */}
+      
       {error && (
         <div className="audit-error">
           <AlertTriangle size={16} /> {error}
@@ -197,7 +197,7 @@ const AuditTrail = () => {
         </table>
       </div>
 
-      {/* Pagination */}
+      
       {pages > 1 && (
         <div className="pagination">
           <button disabled={page === 1}     onClick={() => setPage(p => p - 1)}>← Prev</button>
@@ -209,7 +209,7 @@ const AuditTrail = () => {
   );
 };
 
-// Mock data for dev mode (before SQL is connected)
+
 const MOCK_LOGS = [
   { id: 1, action: 'CREATE_CUSTOMER', entity_type: 'customer', entity_id: 'CUS-4401', performed_by: 'admin@bank.com', ip_address: '192.168.1.10', created_at: new Date().toISOString(), details_json: '{"email":"john@example.com"}' },
   { id: 2, action: 'AML_FLAG',        entity_type: 'transaction', entity_id: 'TXN-8821', performed_by: 'aml-engine', ip_address: null, created_at: new Date(Date.now() - 300000).toISOString(), details_json: '{"rules":["STRUCTURING"]}' },

@@ -1,10 +1,4 @@
-###############################################################################
-# users_extended.tf – Additional Users for the Banking Hierarchy
-###############################################################################
 
-# -----------------------------------------------------------------------------
-# EXECUTIVES
-# -----------------------------------------------------------------------------
 resource "azuread_user" "ceo_hector" {
   user_principal_name   = "hector@${local.domain}"
   display_name          = "Hector Salamanca"
@@ -35,9 +29,6 @@ resource "azuread_group_member" "cfo_lalo_member" {
   member_object_id = azuread_user.cfo_lalo.object_id
 }
 
-# -----------------------------------------------------------------------------
-# REGIONAL AUTHORITIES
-# -----------------------------------------------------------------------------
 resource "azuread_user" "regional_tuco" {
   user_principal_name   = "tuco@${local.domain}"
   display_name          = "Tuco Salamanca"
@@ -53,9 +44,6 @@ resource "azuread_group_member" "regional_tuco_member" {
   member_object_id = azuread_user.regional_tuco.object_id
 }
 
-# -----------------------------------------------------------------------------
-# DEPARTMENT HEADS
-# -----------------------------------------------------------------------------
 resource "azuread_user" "dept_todd" {
   user_principal_name   = "todd@${local.domain}"
   display_name          = "Todd Alquist"
@@ -86,9 +74,6 @@ resource "azuread_group_member" "dept_lydia_member" {
   member_object_id = azuread_user.dept_lydia.object_id
 }
 
-# -----------------------------------------------------------------------------
-# BRANCH MANAGERS
-# -----------------------------------------------------------------------------
 resource "azuread_user" "branch_skinny_pete" {
   user_principal_name   = "skinnypete@${local.domain}"
   display_name          = "Skinny Pete"
@@ -119,9 +104,6 @@ resource "azuread_group_member" "branch_badger_member" {
   member_object_id = azuread_user.branch_badger.object_id
 }
 
-# -----------------------------------------------------------------------------
-# SOC ANALYSTS
-# -----------------------------------------------------------------------------
 resource "azuread_user" "soc_huell" {
   user_principal_name   = "huell@${local.domain}"
   display_name          = "Huell Babineaux"
@@ -137,9 +119,6 @@ resource "azuread_group_member" "soc_huell_member" {
   member_object_id = azuread_user.soc_huell.object_id
 }
 
-# -----------------------------------------------------------------------------
-# DEVOPS ENGINEERS
-# -----------------------------------------------------------------------------
 resource "azuread_user" "devops_gomez" {
   user_principal_name   = "gomez@${local.domain}"
   display_name          = "Steven Gomez"
