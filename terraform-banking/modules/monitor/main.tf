@@ -1,8 +1,3 @@
-###############################################################################
-# modules/monitor/main.tf – Log Analytics Workspace
-#
-# LAW naming: mohdg-banking-law-dev
-###############################################################################
 
 resource "azurerm_log_analytics_workspace" "this" {
   name                = var.name

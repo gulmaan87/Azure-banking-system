@@ -1,8 +1,4 @@
-###############################################################################
-# firewall.tf – Azure Firewall and Route Tables
-###############################################################################
 
-# 1. Public IP for Firewall
 resource "azurerm_public_ip" "firewall" {
   count = var.enable_firewall ? 1 : 0
 
@@ -14,7 +10,6 @@ resource "azurerm_public_ip" "firewall" {
   tags                = local.common_tags
 }
 
-# 2. Azure Firewall
 resource "azurerm_firewall" "this" {
   count = var.enable_firewall ? 1 : 0
 
@@ -32,7 +27,6 @@ resource "azurerm_firewall" "this" {
   }
 }
 
-# 3. Route Table to Force Traffic via Firewall (Only applied if FW enabled)
 resource "azurerm_route_table" "force_firewall" {
   count = var.enable_firewall ? 1 : 0
 

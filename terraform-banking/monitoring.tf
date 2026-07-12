@@ -1,8 +1,4 @@
-###############################################################################
-# monitoring.tf – Log Analytics and Microsoft Sentinel
-###############################################################################
 
-# 1. Log Analytics Workspace
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "${local.name_prefix}-law-${var.env}"
   location            = azurerm_resource_group.banking1.location
@@ -12,7 +8,6 @@ resource "azurerm_log_analytics_workspace" "this" {
   tags                = local.common_tags
 }
 
-# 2. Microsoft Sentinel (SIEM) Solution
 resource "azurerm_log_analytics_solution" "sentinel" {
   count = var.enable_sentinel ? 1 : 0
 

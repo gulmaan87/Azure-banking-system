@@ -1,8 +1,3 @@
-###############################################################################
-# modules/backup/main.tf – Recovery Services Vault
-#
-# RSV naming: mohdg-banking-rsv-dev
-###############################################################################
 
 resource "azurerm_recovery_services_vault" "this" {
   name                = var.name
@@ -10,15 +5,11 @@ resource "azurerm_recovery_services_vault" "this" {
   location            = var.location
   sku                 = "Standard"
 
-  # Soft-delete keeps deleted backup data for 14 days (enhanced for banking)
   soft_delete_enabled = true
 
   tags = var.tags
 }
 
-###############################################################################
-# Default VM backup policy (daily, 30-day retention)
-###############################################################################
 
 resource "azurerm_backup_policy_vm" "daily" {
   name                = "${var.name}-policy-daily"

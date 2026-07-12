@@ -1,13 +1,13 @@
-/**
- * TransactionService.js — Transaction processing + analytics queries
- *
- * New in Phase 8:
- *   - Daily volume stats for chart
- *   - Global recent feed with AML flag join
- *   - Pagination + multi-field search
- *   - Risk-scored summaries per customer
- *   - Transfer limits: single > $10k warns, daily > $50k blocks
- */
+
+
+
+
+
+
+
+
+
+
 
 import { query } from '../db/connection.js';
 import * as auditLogger from '../middleware/auditLogger.js';
@@ -16,9 +16,9 @@ import { broadcast }   from './signalr.js';
 import { v4 as uuidv4 } from 'uuid';
 import { z }           from 'zod';
 
-// ── Transfer limits ──────────────────────────────────────────────────────────
-const SINGLE_TX_WARN_THRESHOLD  = 10_000;  // flag for AML if single tx > $10k
-const DAILY_TX_HARD_LIMIT       = 50_000;  // hard block if daily total > $50k
+
+const SINGLE_TX_WARN_THRESHOLD  = 10_000;  
+const DAILY_TX_HARD_LIMIT       = 50_000;  
 
 const TransactionSchema = z.object({
   account_id:   z.string(),
@@ -28,15 +28,15 @@ const TransactionSchema = z.object({
   description:  z.string().max(500).optional(),
   counterparty: z.string().max(255).optional(),
   reference:    z.string().max(100).optional(),
-  country:      z.string().length(2).optional(),  // ISO-3166 country code
+  country:      z.string().length(2).optional(),  
   ip_address:   z.string().optional(),
 });
 
-// ── Create Transaction ───────────────────────────────────────────────────────
+
 export const create = async (data, performedBy, req = null) => {
   const validated = TransactionSchema.parse(data);
 
-  // 1. Account guard
+  
   const account = await query(
     'SELECT balance, is_frozen, customer_id FROM accounts WHERE id = @id',
     { id: validated.account_id }
@@ -45,14 +45,14 @@ export const create = async (data, performedBy, req = null) => {
   const acc = account.recordset[0];
   if (acc.is_frozen) throw Object.assign(new Error('Account is frozen — transactions blocked'), { status: 403 });
 
-  // 2. Balance check for debits
+  
   if (['Debit','Withdrawal','Transfer'].includes(validated.type)) {
     if (parseFloat(acc.balance) < validated.amount) {
       throw Object.assign(new Error(`Insufficient balance. Available: $${parseFloat(acc.balance).toFixed(2)}`), { status: 422 });
     }
   }
 
-  // 3. Daily transfer limit check (debits only)
+  
   if (['Debit','Withdrawal','Transfer'].includes(validated.type)) {
     const today = await query(
       `SELECT ISNULL(SUM(amount), 0) AS daily_total
@@ -71,7 +71,7 @@ export const create = async (data, performedBy, req = null) => {
     }
   }
 
-  // 4. Update balance(s) and insert transaction(s)
+  
   const txId = uuidv4();
   let newBalance = parseFloat(acc.balance);
   let destAcc = null;
@@ -97,10 +97,10 @@ export const create = async (data, performedBy, req = null) => {
     newBalance -= validated.amount;
   }
 
-  // Update source balance
+  
   await query('UPDATE accounts SET balance = @balance WHERE id = @id', { balance: newBalance, id: validated.account_id });
 
-  // Insert source transaction
+  
   await query(
     `INSERT INTO transactions (id, account_id, type, amount, balance_after, description, counterparty, reference, country, ip_address, created_by_emp)
      VALUES (@id, @account_id, @type, @amount, @balance_after, @description, @counterparty, @reference, @country, @ip, @emp)`,
@@ -116,7 +116,7 @@ export const create = async (data, performedBy, req = null) => {
     }
   );
 
-  // If internal destination exists, update destination balance and insert destination transaction
+  
   if (destAcc) {
     await query('UPDATE accounts SET balance = @balance WHERE id = @id', { balance: destNewBalance, id: validated.counterparty });
     
@@ -136,7 +136,7 @@ export const create = async (data, performedBy, req = null) => {
       }
     );
 
-    // Broadcast destination transaction
+    
     await broadcast('TransactionCreated', {
       transaction_id: destTxId, account_id: validated.counterparty,
       customer_id: destAcc.customer_id, type: validated.type,
@@ -146,7 +146,7 @@ export const create = async (data, performedBy, req = null) => {
     });
   }
 
-  // 6. Audit + SignalR for source
+  
   await auditLogger.log('CREATE_TRANSACTION', 'transaction', txId, performedBy,
     { amount: validated.amount, type: validated.type, account: validated.account_id }, req);
 
@@ -158,13 +158,13 @@ export const create = async (data, performedBy, req = null) => {
     timestamp: new Date().toISOString(),
   });
 
-  // 7. AML analysis (async, never blocks response)
+  
   AmlService.analyzeTransaction({ ...validated, id: txId }).catch(console.error);
 
   return { id: txId, balance_after: newBalance, daily_limit_remaining: DAILY_TX_HARD_LIMIT };
 };
 
-// ── Per-account history ──────────────────────────────────────────────────────
+
 export const getByAccount = async (accountId, limit = 50, offset = 0) => {
   const result = await query(
     `SELECT t.*, af.flag_type, af.risk_level AS aml_risk
@@ -178,7 +178,7 @@ export const getByAccount = async (accountId, limit = 50, offset = 0) => {
   return result.recordset;
 };
 
-// ── Per-customer history (all accounts) ─────────────────────────────────────
+
 export const getByCustomer = async (customerId, limit = 50, offset = 0) => {
   const result = await query(
     `SELECT t.*, a.account_type, af.flag_type, af.risk_level AS aml_risk
@@ -193,7 +193,7 @@ export const getByCustomer = async (customerId, limit = 50, offset = 0) => {
   return result.recordset;
 };
 
-// ── Global recent feed (admin dashboard) ────────────────────────────────────
+
 export const getRecent = async (limit = 100, offset = 0, filters = {}) => {
   const { type, minAmount, maxAmount, search, flagged } = filters;
 
@@ -242,9 +242,9 @@ export const getRecent = async (limit = 100, offset = 0, filters = {}) => {
   return { data: result.recordset, total: total.recordset[0].total };
 };
 
-// ── Stats for dashboard charts ───────────────────────────────────────────────
+
 export const getStats = async () => {
-  // Daily volume for last 30 days
+  
   const daily = await query(`
     SELECT CAST(created_at AS DATE) AS date,
            SUM(amount)              AS total_volume,
@@ -257,7 +257,7 @@ export const getStats = async () => {
     ORDER BY date ASC
   `);
 
-  // By type breakdown
+  
   const byType = await query(`
     SELECT type, COUNT(*) AS count, SUM(amount) AS volume
     FROM transactions
@@ -265,7 +265,7 @@ export const getStats = async () => {
     GROUP BY type
   `);
 
-  // Today's summary
+  
   const today = await query(`
     SELECT COUNT(*)             AS tx_count,
            ISNULL(SUM(amount),0) AS volume,
@@ -275,7 +275,7 @@ export const getStats = async () => {
     WHERE CAST(created_at AS DATE) = CAST(GETUTCDATE() AS DATE)
   `);
 
-  // AML flagged this week
+  
   const flaggedCount = await query(`
     SELECT COUNT(*) AS flagged
     FROM aml_flags
@@ -283,7 +283,7 @@ export const getStats = async () => {
       AND resolved_at IS NULL
   `);
 
-  // High-value transactions (> $10k) today
+  
   const highValue = await query(`
     SELECT COUNT(*) AS high_value_count, ISNULL(SUM(amount),0) AS high_value_volume
     FROM transactions

@@ -6,10 +6,10 @@ import { msalConfig } from './auth/authConfig.js';
 import App from './App.jsx';
 import './index.css';
 
-// Initialise MSAL once at the app root
+
 const msalInstance = new PublicClientApplication(msalConfig);
 
-// Initialize MSAL before rendering the React application
+
 msalInstance.initialize().then(() => {
   const isInIframe = window.self !== window.top;
 

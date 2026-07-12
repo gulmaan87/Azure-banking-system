@@ -45,7 +45,7 @@ const BankManagement = () => {
         </div>
       </div>
 
-      {/* Top Stats */}
+      
       <div className="mgmt-stats-grid">
         <div className="glass-panel mgmt-stat-card">
           <div className="stat-icon-wrapper blue">
@@ -85,7 +85,7 @@ const BankManagement = () => {
         </div>
       </div>
 
-      {/* Network Topology */}
+      
       <div className="network-topology-container">
         {regions.map((region, idx) => (
           <div key={idx} className="glass-panel region-card">
@@ -116,7 +116,7 @@ const BankManagement = () => {
         ))}
       </div>
 
-      {/* Personnel Grid */}
+      
       <div className="glass-panel personnel-section" style={{ padding: '28px' }}>
         <div className="section-title">
           AzureAD Enterprise Personnel

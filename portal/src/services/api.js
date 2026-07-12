@@ -1,30 +1,30 @@
-/**
- * api.js — Centralized API client for the Azure Bank Portal
- *
- * HOW TOKEN ACQUISITION WORKS:
- * - Pass `getToken` from useEmployeeAuth() / useCustomerAuth() to the api factory.
- * - The factory calls `getToken()` before every request.
- * - In dev mode the hooks return mock tokens automatically — no hardcoding here.
- *
- * Employee usage:
- *   const { getToken } = useAuthContext();
- *   const api = createApi(getToken);
- *   const result = await api.customers.getAll();
- *
- * Customer usage:
- *   const { getToken } = useCustomerAuthContext();
- *   const api = createApi(getToken);
- *   const result = await api.accounts.getByCustomer(customerId);
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 let BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-// Normalize: Trim trailing slash
+
 if (BASE_URL.endsWith('/')) {
   BASE_URL = BASE_URL.slice(0, -1);
 }
 
-// Check for mixed content issues to fail-fast
+
 const checkMixedContent = (url) => {
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     if (url.startsWith('http://')) {
@@ -46,9 +46,9 @@ const handleResponse = async (res) => {
   return res.json();
 };
 
-// ── Factory: creates an authenticated API client ──────────────────────────────
+
 export const createApi = (getToken) => {
-  // getToken() is called lazily on every request so the token is always fresh.
+  
   const headers = async () => {
     const token = await getToken();
     return {
@@ -111,5 +111,5 @@ export const createApi = (getToken) => {
   };
 };
 
-// ── Default employee dev client (used by AdminDashboard and other employee components) ──
+
 export const devApi = createApi(() => Promise.resolve('dev-mock-token-admin'));

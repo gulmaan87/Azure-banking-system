@@ -6,7 +6,7 @@ import * as CustomerService from '../services/CustomerService.js';
 const router = Router();
 router.use(authMiddleware);
 
-// GET /api/customers — All staff roles
+
 router.get('/', requireRole(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
   try {
     const customers = await CustomerService.getAll();
@@ -14,7 +14,7 @@ router.get('/', requireRole(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req,
   } catch (err) { next(err); }
 });
 
-// GET /api/customers/:id — Customer self or All staff roles
+
 router.get('/:id', requireSelfOrStaff(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
   try {
     const customer = await CustomerService.getById(req.params.id);
@@ -22,16 +22,16 @@ router.get('/:id', requireSelfOrStaff(['ADMIN','AUDITOR','DEVELOPER','DATA']), a
   } catch (err) { next(err); }
 });
 
-// POST /api/customers — Admin only
+
 router.post('/', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
-    const result = await CustomerService.create(req.body, performedBy, req);  // pass req for IP
+    const result = await CustomerService.create(req.body, performedBy, req);  
     res.status(201).json({ message: 'Customer created', data: result });
   } catch (err) { next(err); }
 });
 
-// PUT /api/customers/:id — Admin full update; Auditor risk_level only
+
 router.put('/:id', requireRole(['ADMIN','AUDITOR']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
@@ -40,7 +40,7 @@ router.put('/:id', requireRole(['ADMIN','AUDITOR']), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// DELETE /api/customers/:id — Admin only (requires zero balance)
+
 router.delete('/:id', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
@@ -49,7 +49,7 @@ router.delete('/:id', requireRole(['ADMIN']), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// PATCH /api/customers/:id/freeze — Admin only
+
 router.patch('/:id/freeze', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
@@ -58,7 +58,7 @@ router.patch('/:id/freeze', requireRole(['ADMIN']), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// PATCH /api/customers/:id/unfreeze — Admin only
+
 router.patch('/:id/unfreeze', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
@@ -67,7 +67,7 @@ router.patch('/:id/unfreeze', requireRole(['ADMIN']), async (req, res, next) => 
   } catch (err) { next(err); }
 });
 
-// PATCH /api/customers/:id/flag — Admin only
+
 router.patch('/:id/flag', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;

@@ -3,7 +3,7 @@ import { getPool } from '../db/connection.js';
 
 const router = Router();
 
-// GET /api/health — No auth required (used by Azure load balancer probes)
+
 router.get('/', async (req, res) => {
   try {
     const pool = await getPool();

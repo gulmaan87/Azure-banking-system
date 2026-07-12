@@ -1,15 +1,15 @@
--- =============================================================================
--- migration_007_kyc_blob_storage.sql
--- Phase 7 — Upgrades kyc_submissions table to store Blob Storage references
---
--- Run this on database-1 VM:
---   sqlcmd -S 10.0.6.4 -d BankingDB -U bankapp -P <password> -i migration_007_kyc_blob_storage.sql
--- =============================================================================
+
+
+
+
+
+
+
 
 USE BankingDB;
 GO
 
--- ── Add columns if they don't exist (idempotent) ─────────────────────────────
+
 
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('kyc_submissions') AND name = 'review_note')
 BEGIN
@@ -32,7 +32,7 @@ BEGIN
 END
 GO
 
--- Ensure documents_json column is large enough for blob metadata
+
 IF EXISTS (
     SELECT 1 FROM sys.columns
     WHERE object_id = OBJECT_ID('kyc_submissions')
@@ -45,7 +45,7 @@ BEGIN
 END
 GO
 
--- ── Audit log table (create if missing) ──────────────────────────────────────
+
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'audit_log')
 BEGIN
     CREATE TABLE audit_log (
@@ -66,7 +66,7 @@ BEGIN
 END
 GO
 
--- ── KYC submissions (create if missing) ──────────────────────────────────────
+
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'kyc_submissions')
 BEGIN
     CREATE TABLE kyc_submissions (

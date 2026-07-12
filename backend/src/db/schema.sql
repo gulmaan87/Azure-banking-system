@@ -1,9 +1,9 @@
--- ============================================================
--- Azure Bank Database Schema
--- Run on: database-1 VM (10.0.6.4) via SQL Edge (Docker)
--- ============================================================
 
--- Create the database
+
+
+
+
+
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'BankingDB')
 BEGIN
   CREATE DATABASE BankingDB;
@@ -13,20 +13,20 @@ GO
 USE BankingDB;
 GO
 
--- ── CUSTOMERS ────────────────────────────────────────────────
+
 IF OBJECT_ID('customers', 'U') IS NULL
 BEGIN
   CREATE TABLE customers (
-    id            NVARCHAR(20)   NOT NULL PRIMARY KEY,  -- CUS-XXXX
+    id            NVARCHAR(20)   NOT NULL PRIMARY KEY,
     full_name     NVARCHAR(100)  NOT NULL,
     email         NVARCHAR(200)  NOT NULL UNIQUE,
     phone         NVARCHAR(30),
     address       NVARCHAR(500),
     date_of_birth DATE,
     nationality   NVARCHAR(100),
-    -- Account Status State Machine
+
     status        NVARCHAR(20)   NOT NULL DEFAULT 'Review KYC',
-    -- CHECK: only valid status values allowed
+
     CONSTRAINT chk_status CHECK (status IN ('Review KYC','Active','Flagged','Frozen')),
     risk_level    NVARCHAR(20)   NOT NULL DEFAULT 'Low',
     CONSTRAINT chk_risk CHECK (risk_level IN ('Low','Medium','High','Critical')),
@@ -37,11 +37,11 @@ BEGIN
 END
 GO
 
--- ── ACCOUNTS (one customer → multiple accounts) ────────────
+
 IF OBJECT_ID('accounts', 'U') IS NULL
 BEGIN
   CREATE TABLE accounts (
-    id            NVARCHAR(30)   NOT NULL PRIMARY KEY,  -- ACC-XXXX
+    id            NVARCHAR(30)   NOT NULL PRIMARY KEY,
     customer_id   NVARCHAR(20)   NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
     account_type  NVARCHAR(20)   NOT NULL DEFAULT 'Savings',
     CONSTRAINT chk_account_type CHECK (account_type IN ('Savings','Checking','Loan','Fixed Deposit')),
@@ -53,7 +53,7 @@ BEGIN
 END
 GO
 
--- ── TRANSACTIONS ─────────────────────────────────────────────
+
 IF OBJECT_ID('transactions', 'U') IS NULL
 BEGIN
   CREATE TABLE transactions (
@@ -64,27 +64,27 @@ BEGIN
     amount           DECIMAL(18,2) NOT NULL,
     balance_after    DECIMAL(18,2) NOT NULL,
     description      NVARCHAR(500),
-    counterparty     NVARCHAR(200),  -- Recipient/sender name or account
-    reference        NVARCHAR(100),  -- Payment reference
+    counterparty     NVARCHAR(200),
+    reference        NVARCHAR(100),
     country          NVARCHAR(100),
     ip_address       NVARCHAR(50),
-    created_by_emp   NVARCHAR(200),  -- Employee UPN (null if customer-initiated)
+    created_by_emp   NVARCHAR(200),
     aml_flagged      BIT            NOT NULL DEFAULT 0,
     created_at       DATETIME2      NOT NULL DEFAULT GETUTCDATE()
   );
 END
 GO
 
--- ── KYC SUBMISSIONS ──────────────────────────────────────────
+
 IF OBJECT_ID('kyc_submissions', 'U') IS NULL
 BEGIN
   CREATE TABLE kyc_submissions (
     id             NVARCHAR(36)  NOT NULL PRIMARY KEY DEFAULT NEWID(),
     customer_id    NVARCHAR(20)  NOT NULL REFERENCES customers(id),
-    documents_json NVARCHAR(MAX),  -- JSON: { passport: blobUrl, utilityBill: blobUrl }
+    documents_json NVARCHAR(MAX),
     status         NVARCHAR(20)  NOT NULL DEFAULT 'Pending',
     CONSTRAINT chk_kyc_status CHECK (status IN ('Pending','Approved','Rejected')),
-    submitted_by   NVARCHAR(200) NOT NULL,  -- Employee UPN
+    submitted_by   NVARCHAR(200) NOT NULL,
     reviewed_by    NVARCHAR(200),
     review_note    NVARCHAR(500),
     submitted_at   DATETIME2     NOT NULL DEFAULT GETUTCDATE(),
@@ -93,15 +93,15 @@ BEGIN
 END
 GO
 
--- ── AML FLAGS ────────────────────────────────────────────────
+
 IF OBJECT_ID('aml_flags', 'U') IS NULL
 BEGIN
   CREATE TABLE aml_flags (
     id             NVARCHAR(36)  NOT NULL PRIMARY KEY DEFAULT NEWID(),
     customer_id    NVARCHAR(20)  NOT NULL REFERENCES customers(id),
     transaction_id NVARCHAR(36)  REFERENCES transactions(id),
-    rule           NVARCHAR(50)  NOT NULL,  -- LARGE_CASH / STRUCTURING / HIGH_VELOCITY / GEO_ANOMALY
-    severity       NVARCHAR(20)  NOT NULL,  -- Low / Medium / High / Critical
+    rule           NVARCHAR(50)  NOT NULL,
+    severity       NVARCHAR(20)  NOT NULL,
     description    NVARCHAR(500),
     resolved       BIT           NOT NULL DEFAULT 0,
     resolved_by    NVARCHAR(200),
@@ -111,23 +111,23 @@ BEGIN
 END
 GO
 
--- ── AUDIT LOG (every staff action recorded) ──────────────────
+
 IF OBJECT_ID('audit_log', 'U') IS NULL
 BEGIN
   CREATE TABLE audit_log (
     id            NVARCHAR(36)  NOT NULL PRIMARY KEY DEFAULT NEWID(),
-    action        NVARCHAR(100) NOT NULL,  -- CREATE_CUSTOMER / FREEZE_ACCOUNT / KYC_APPROVED etc.
-    entity_type   NVARCHAR(50)  NOT NULL,  -- customer / account / transaction
+    action        NVARCHAR(100) NOT NULL,
+    entity_type   NVARCHAR(50)  NOT NULL,
     entity_id     NVARCHAR(50)  NOT NULL,
-    performed_by  NVARCHAR(200) NOT NULL,  -- Employee UPN from Azure AD JWT
+    performed_by  NVARCHAR(200) NOT NULL,
     ip_address    NVARCHAR(50),
-    details_json  NVARCHAR(MAX),           -- JSON of changed fields
+    details_json  NVARCHAR(MAX),
     timestamp     DATETIME2     NOT NULL DEFAULT GETUTCDATE()
   );
 END
 GO
 
--- ── INDEXES for performance ───────────────────────────────────
+
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_accounts_customer' AND object_id = OBJECT_ID('accounts'))
   CREATE INDEX idx_accounts_customer ON accounts(customer_id);
 GO
@@ -155,7 +155,7 @@ GO
 PRINT '✅ BankingDB schema created successfully.';
 GO
 
--- Create bankapp login and user with db_owner role
+
 USE master;
 GO
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'bankapp')

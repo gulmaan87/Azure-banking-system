@@ -1,6 +1,3 @@
-###############################################################################
-# modules/vm/variables.tf
-###############################################################################
 
 variable "vm_map" {
   description = "Flat map of 'subnet-index' → { subnet_name, vm_index, vm_size }."

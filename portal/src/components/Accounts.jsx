@@ -32,7 +32,7 @@ const Accounts = () => {
       const accs = accsRes.data || [];
       setAccounts(accs);
 
-      // Fetch last 5 transactions per account for mini-charts
+      
       const txMap = {};
       await Promise.all(accs.map(async acc => {
         try {
@@ -135,7 +135,7 @@ const Accounts = () => {
                   </div>
                 </div>
 
-                {/* Mini transaction list */}
+                
                 {accTxs.length > 0 && (
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                     {accTxs.slice(0, 3).map(tx => {
@@ -157,7 +157,7 @@ const Accounts = () => {
         </div>
       )}
 
-      {/* Balance bar chart */}
+      
       {accounts.length > 1 && (
         <div className="glass-panel" style={{ padding: '28px', marginTop: '24px' }}>
           <div className="section-title" style={{ marginBottom: '24px' }}>Balance Distribution</div>

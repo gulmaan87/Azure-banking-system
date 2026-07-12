@@ -1,6 +1,6 @@
 import sql from 'mssql';
 
-// Config pulled from env — Key Vault integration added in production
+
 const config = {
   server:   process.env.DB_SERVER   || 'localhost',
   port:     parseInt(process.env.DB_PORT) || 1433,
@@ -8,7 +8,7 @@ const config = {
   user:     process.env.DB_USER     || 'bankapp',
   password: process.env.DB_PASSWORD || 'YourStrong@Passw0rd',
   options: {
-    encrypt: process.env.NODE_ENV === 'production', // true on Azure, false locally
+    encrypt: process.env.NODE_ENV === 'production', 
     trustServerCertificate: process.env.NODE_ENV !== 'production',
   },
   pool: {
@@ -18,10 +18,10 @@ const config = {
   },
 };
 
-// Check if we should use the in-memory dummy database
+
 const useDummyDb = process.env.USE_DUMMY_DB !== 'false';
 
-// ── IN-MEMORY DATABASE STATE ────────────────────────────────────────────────
+
 const DB = {
   customers: [],
   accounts: [],
@@ -31,14 +31,14 @@ const DB = {
   audit_log: []
 };
 
-// ── SEED INITIAL MOCK DATA ──────────────────────────────────────────────────
+
 if (useDummyDb) {
   console.log('🔌 [Database] Initializing in-memory dummy database with seed data...');
   
   const now = new Date();
   const daysAgo = (d) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000).toISOString();
 
-  // 1. Customers
+  
   DB.customers = [
     {
       id: 'CUS-1001',
@@ -102,7 +102,7 @@ if (useDummyDb) {
     }
   ];
 
-  // 2. Accounts
+  
   DB.accounts = [
     {
       id: 'ACC-1001',
@@ -142,7 +142,7 @@ if (useDummyDb) {
     }
   ];
 
-  // 3. Transactions
+  
   DB.transactions = [
     {
       id: 'TX-001',
@@ -191,7 +191,7 @@ if (useDummyDb) {
     }
   ];
 
-  // 4. KYC Submissions
+  
   DB.kyc_submissions = [
     {
       id: 'KYC-001',
@@ -217,7 +217,7 @@ if (useDummyDb) {
     }
   ];
 
-  // 5. AML Flags
+  
   DB.aml_flags = [
     {
       id: 'AML-001',
@@ -233,7 +233,7 @@ if (useDummyDb) {
     }
   ];
 
-  // 6. Audit Log
+  
   DB.audit_log = [
     {
       id: 'AUD-001',
@@ -248,18 +248,18 @@ if (useDummyDb) {
   ];
 }
 
-// ── MOCK SQL QUERY HANDLER ──────────────────────────────────────────────────
+
 export const handleMockQuery = async (queryStr, params = {}) => {
   const normalized = queryStr.toLowerCase().replace(/\s+/g, ' ').trim();
 
-  // SELECT 1 (Health check)
+  
   if (normalized === 'select 1') {
     return { recordset: [{ '1': 1 }], rowsAffected: [1] };
   }
 
-  // ── CUSTOMERS TABLE ───────────────────────────────────────────────────────
+  
   if (normalized.includes('from customers')) {
-    // delete
+    
     if (normalized.startsWith('delete')) {
       const id = params.id;
       const idx = DB.customers.findIndex(c => c.id === id);
@@ -269,7 +269,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }
       return { recordset: [], rowsAffected: [idx !== -1 ? 1 : 0] };
     }
-    // update kyc_verified & status
+    
     if (normalized.includes('kyc_verified = 1') && normalized.includes("status = 'active'")) {
       const id = params.customerId || params.id;
       const cust = DB.customers.find(c => c.id === id);
@@ -280,7 +280,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }
       return { recordset: [], rowsAffected: [cust ? 1 : 0] };
     }
-    // update status
+    
     if (normalized.includes('set status = @status')) {
       const id = params.id || params.customerId || params.cid;
       const cust = DB.customers.find(c => c.id === id);
@@ -290,7 +290,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }
       return { recordset: [], rowsAffected: [cust ? 1 : 0] };
     }
-    // update risk_level
+    
     if (normalized.includes('set risk_level = @risk')) {
       const id = params.id;
       const cust = DB.customers.find(c => c.id === id);
@@ -300,22 +300,22 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }
       return { recordset: [], rowsAffected: [cust ? 1 : 0] };
     }
-    // select single by ID
+    
     if (normalized.includes('where id = @id')) {
       const match = DB.customers.filter(c => c.id === params.id);
       return { recordset: match, rowsAffected: [match.length] };
     }
-    // select single by customer_principal_id
+    
     if (normalized.includes('where customer_principal_id = @principalid')) {
       const match = DB.customers.filter(c => c.customer_principal_id === params.principalId);
       return { recordset: match, rowsAffected: [match.length] };
     }
-    // select single by email
+    
     if (normalized.includes('where email = @email')) {
       const match = DB.customers.filter(c => c.email === params.email);
       return { recordset: match, rowsAffected: [match.length] };
     }
-    // update customer_principal_id
+    
     if (normalized.includes('set customer_principal_id = @principalid')) {
       const id = params.id;
       const cust = DB.customers.find(c => c.id === id);
@@ -325,14 +325,14 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }
       return { recordset: [], rowsAffected: [cust ? 1 : 0] };
     }
-    // select all customers
+    
     return {
       recordset: DB.customers.slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
       rowsAffected: [DB.customers.length]
     };
   }
 
-  // insert customer
+  
   if (normalized.startsWith('insert into customers')) {
     const newCustomer = {
       id: params.id,
@@ -353,7 +353,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // UPDATE customers — principal_id dynamic mapping
+  
   if (normalized.startsWith('update customers set customer_principal_id')) {
     const cust = DB.customers.find(c => c.id === params.id);
     if (cust) {
@@ -363,7 +363,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [cust ? 1 : 0] };
   }
 
-  // UPDATE customers — general field updates (status, risk_level, etc.)
+  
   if (normalized.startsWith('update customers set')) {
     const cust = DB.customers.find(c => c.id === params.id);
     if (cust) {
@@ -377,7 +377,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
   }
 
   if (normalized.includes('from accounts')) {
-    // join customer details
+    
     if (normalized.includes('join customers')) {
       const result = DB.accounts.map(acc => {
         const cust = DB.customers.find(c => c.id === acc.customer_id) || {};
@@ -389,24 +389,24 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       }).sort((a, b) => new Date(b.opened_at) - new Date(a.opened_at));
       return { recordset: result, rowsAffected: [result.length] };
     }
-    // select by customer_id — full account records
+    
     if (normalized.includes('where customer_id = @id')) {
       const result = DB.accounts
         .filter(a => a.customer_id === params.id)
         .sort((a, b) => new Date(a.opened_at) - new Date(b.opened_at));
       return { recordset: result, rowsAffected: [result.length] };
     }
-    // customer_id balance sum (legacy path)
+    
     if (normalized.includes('where customer_id = @customerid')) {
       const result = DB.accounts.filter(a => a.customer_id === params.customerId).map(a => ({ balance: a.balance }));
       return { recordset: result, rowsAffected: [result.length] };
     }
-    // select single account by ID (for ownership check)
+    
     if (normalized.includes('where id = @id') && !normalized.includes('customer_id')) {
       const result = DB.accounts.filter(a => a.id === params.id);
       return { recordset: result, rowsAffected: [result.length] };
     }
-    // freeze / unfreeze accounts
+    
     if (normalized.includes('set is_frozen = 1')) {
       const matches = DB.accounts.filter(a => a.customer_id === params.id);
       matches.forEach(a => a.is_frozen = true);
@@ -417,14 +417,14 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       matches.forEach(a => a.is_frozen = false);
       return { recordset: [], rowsAffected: [matches.length] };
     }
-    // select single by ID
+    
     if (normalized.includes('where id = @accountid')) {
       const result = DB.accounts.filter(a => a.id === params.accountId);
       return { recordset: result, rowsAffected: [result.length] };
     }
   }
 
-  // insert account
+  
   if (normalized.startsWith('insert into accounts')) {
     const newAccount = {
       id: params.id || params.accId,
@@ -439,7 +439,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // update account balance
+  
   if (normalized.startsWith('update accounts set balance = @balance')) {
     const acc = DB.accounts.find(a => a.id === params.id);
     if (acc) {
@@ -448,9 +448,9 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [acc ? 1 : 0] };
   }
 
-  // ── TRANSACTIONS TABLE ────────────────────────────────────────────────────
+  
   if (normalized.includes('from transactions')) {
-    // 1. Stats query: Daily volume for last 30 days
+    
     if (normalized.includes('cast(created_at as date) as date') && normalized.includes('dateadd(day, -30, getutcdate())')) {
       const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const groups = {};
@@ -474,7 +474,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       return { recordset: result, rowsAffected: [result.length] };
     }
 
-    // 2. Stats query: By type breakdown last 7 days
+    
     if (normalized.includes('group by type') && normalized.includes('dateadd(day, -7, getutcdate())')) {
       const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const groups = {};
@@ -491,7 +491,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       return { recordset: Object.values(groups), rowsAffected: [Object.keys(groups).length] };
     }
 
-    // 3. Stats query: Today's summary
+    
     if (normalized.includes('max(amount) as largest_tx') && normalized.includes('cast(created_at as date) = cast(getutcdate() as date)')) {
       const todayStr = new Date().toISOString().substring(0, 10);
       const matches = DB.transactions.filter(tx => tx.created_at.substring(0, 10) === todayStr);
@@ -510,7 +510,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       };
     }
 
-    // 4. Stats query: High-value transactions today
+    
     if (normalized.includes('high_value_count') && normalized.includes('cast(created_at as date) = cast(getutcdate() as date)')) {
       const todayStr = new Date().toISOString().substring(0, 10);
       const matches = DB.transactions.filter(tx => tx.amount >= 10000 && tx.created_at.substring(0, 10) === todayStr);
@@ -525,11 +525,11 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       };
     }
 
-    // count transactions
+    
     if (normalized.includes('count(*) as total from transactions')) {
       return { recordset: [{ total: DB.transactions.length }], rowsAffected: [1] };
     }
-    // group by convert date
+    
     if (normalized.includes('group by convert(date, created_at)')) {
       const groups = {};
       DB.transactions.forEach(tx => {
@@ -543,7 +543,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       const list = Object.values(groups).sort((a, b) => a.date.localeCompare(b.date));
       return { recordset: list, rowsAffected: [list.length] };
     }
-    // group by type
+    
     if (normalized.includes('group by type')) {
       const groups = {};
       DB.transactions.forEach(tx => {
@@ -555,12 +555,12 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       });
       return { recordset: Object.values(groups), rowsAffected: [Object.keys(groups).length] };
     }
-    // count by today
+    
     if (normalized.includes('where created_at >= @today')) {
       const count = DB.transactions.filter(tx => new Date(tx.created_at) >= new Date(params.today)).length;
       return { recordset: [{ count }], rowsAffected: [1] };
     }
-    // structuring rule check (last 24 hours outflow sum)
+    
     if (normalized.includes('dateadd(hour, -24, getutcdate())')) {
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const match = DB.transactions.filter(tx => 
@@ -571,7 +571,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       const total = match.reduce((sum, tx) => sum + tx.amount, 0);
       return { recordset: [{ total }], rowsAffected: [1] };
     }
-    // velocity rule check (last 1 hour count)
+    
     if (normalized.includes('dateadd(hour, -1, getutcdate())')) {
       const cutoff = new Date(Date.now() - 60 * 60 * 1000);
       const match = DB.transactions.filter(tx => 
@@ -580,7 +580,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       );
       return { recordset: [{ cnt: match.length }], rowsAffected: [1] };
     }
-    // type stats with since date
+    
     if (normalized.includes('group by type') && normalized.includes('created_at >= @since')) {
       const cutoff = new Date(params.since || 0);
       const matches = DB.transactions.filter(tx => 
@@ -596,7 +596,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       });
       return { recordset: Object.values(groups), rowsAffected: [Object.keys(groups).length] };
     }
-    // avg and stdev stats
+    
     if (normalized.includes('avg(amount) as avg_amount, stdev(amount) as stddev_amount')) {
       const cutoff = new Date(params.since || 0);
       const matches = DB.transactions.filter(tx => 
@@ -616,7 +616,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       const stddev = Math.sqrt(variance);
       return { recordset: [{ avg_amount: avg, stddev_amount: stddev }], rowsAffected: [1] };
     }
-    // total count with since date
+    
     if (normalized.includes('created_at >= @since')) {
       const cutoff = new Date(params.since || 0);
       const count = DB.transactions.filter(tx => 
@@ -625,7 +625,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       ).length;
       return { recordset: [{ count }], rowsAffected: [1] };
     }
-    // geographic anomaly offset 1 rule
+    
     if (normalized.includes('offset 1 rows')) {
       const matches = DB.transactions.filter(tx => 
         tx.account_id === params.accountId && 
@@ -636,7 +636,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       return { recordset: [{ country }], rowsAffected: [1] };
     }
 
-    // general query transactions join accounts, customers, aml_flags
+    
     let list = DB.transactions.map(tx => {
       const acc = DB.accounts.find(a => a.id === tx.account_id) || {};
       const cust = DB.customers.find(c => c.id === acc.customer_id) || {};
@@ -694,7 +694,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: list, rowsAffected: [list.length] };
   }
 
-  // insert transaction
+  
   if (normalized.startsWith('insert into transactions')) {
     const newTx = {
       id: params.id || `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -712,7 +712,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       created_at: new Date().toISOString()
     };
     DB.transactions.push(newTx);
-    // Update account balance
+    
     const acc = DB.accounts.find(a => a.id === params.accountId);
     if (acc) {
       acc.balance = newTx.balance_after;
@@ -720,7 +720,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // ── KYC SUBMISSIONS TABLE ─────────────────────────────────────────────────
+  
   if (normalized.includes('from kyc_submissions')) {
     let list = DB.kyc_submissions.map(kyc => {
       const cust = DB.customers.find(c => c.id === kyc.customer_id) || {};
@@ -737,7 +737,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: list, rowsAffected: [list.length] };
   }
 
-  // insert kyc submission
+  
   if (normalized.startsWith('insert into kyc_submissions')) {
     const newKyc = {
       id: params.id || `KYC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -751,7 +751,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
       reviewed_at: null
     };
     DB.kyc_submissions.push(newKyc);
-    // Update customer status to 'Review KYC'
+    
     const cust = DB.customers.find(c => c.id === params.customerId);
     if (cust) {
       cust.status = 'Review KYC';
@@ -760,7 +760,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // update kyc submission status
+  
   if (normalized.startsWith('update kyc_submissions set status = @status')) {
     const kyc = DB.kyc_submissions.find(k => k.id === params.id);
     if (kyc) {
@@ -772,25 +772,25 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [kyc ? 1 : 0] };
   }
 
-  // ── AML FLAGS TABLE ───────────────────────────────────────────────────────
+  
   if (normalized.includes('from aml_flags')) {
-    // Stats query: AML flagged this week
+    
     if (normalized.includes('count(*) as flagged') && normalized.includes('dateadd(day, -7, getutcdate())')) {
       const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const flagged = DB.aml_flags.filter(f => !f.resolved && new Date(f.created_at) >= cutoff).length;
       return { recordset: [{ flagged }], rowsAffected: [1] };
     }
-    // count unresolved flags
+    
     if (normalized.includes('count(*) as count from aml_flags where resolved = 0')) {
       const count = DB.aml_flags.filter(f => !f.resolved).length;
       return { recordset: [{ count }], rowsAffected: [1] };
     }
-    // select list of unresolved flags for customer
+    
     if (normalized.includes('customer_id = @id and resolved = 0')) {
       const list = DB.aml_flags.filter(f => f.customer_id === params.id && !f.resolved).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       return { recordset: list, rowsAffected: [list.length] };
     }
-    // general list join customers & transactions
+    
     const list = DB.aml_flags.map(flag => {
       const cust = DB.customers.find(c => c.id === flag.customer_id) || {};
       const tx = DB.transactions.find(t => t.id === flag.transaction_id) || {};
@@ -804,7 +804,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: list, rowsAffected: [list.length] };
   }
 
-  // insert aml flag
+  
   if (normalized.startsWith('insert into aml_flags')) {
     const newFlag = {
       id: params.id || `AML-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -822,7 +822,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // update aml flag status
+  
   if (normalized.startsWith('update aml_flags set resolved = 1')) {
     const flag = DB.aml_flags.find(f => f.id === params.id);
     if (flag) {
@@ -833,7 +833,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [flag ? 1 : 0] };
   }
 
-  // ── AUDIT LOG TABLE ───────────────────────────────────────────────────────
+  
   if (normalized.includes('from audit_log')) {
     let list = DB.audit_log.slice();
     if (params.action) {
@@ -841,7 +841,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     }
     list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
-    // count query
+    
     if (normalized.includes('count(*) as total')) {
       return { recordset: [{ total: list.length }], rowsAffected: [1] };
     }
@@ -852,7 +852,7 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: page, rowsAffected: [page.length] };
   }
 
-  // insert audit log
+  
   if (normalized.startsWith('insert into audit_log')) {
     const newLog = {
       id: `AUD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -868,19 +868,19 @@ export const handleMockQuery = async (queryStr, params = {}) => {
     return { recordset: [], rowsAffected: [1] };
   }
 
-  // Fallback / Unknown query
+  
   console.warn(`⚠️ [Mock DB] Query not explicitly matched: "${queryStr}"`);
   return { recordset: [], rowsAffected: [0] };
 };
 
-// ── CONNECTION POOL MOCK ────────────────────────────────────────────────────
+
 const mockPool = {
   request: () => {
     const inputParams = {};
     const reqObj = {
       input: (name, value) => {
         inputParams[name] = value;
-        return reqObj; // chainable
+        return reqObj; 
       },
       query: async (queryStr) => {
         return handleMockQuery(queryStr, inputParams);
@@ -911,7 +911,7 @@ export const getPool = async () => {
   return pool;
 };
 
-// Helper: run a parameterized query with named params
+
 export const query = async (queryStr, params = {}) => {
   if (useDummyDb) {
     return handleMockQuery(queryStr, params);

@@ -2,16 +2,16 @@ import { query } from '../db/connection.js';
 import * as auditLogger from '../middleware/auditLogger.js';
 import { broadcast } from './signalr.js';
 
-/**
- * AmlService — Anti-Money Laundering Rules Engine
- * Runs automatically on every new transaction.
- */
+
+
+
+
 
 export const analyzeTransaction = async (transaction) => {
   const { id: txId, account_id, customer_id, amount, country } = transaction;
   const flags = [];
 
-  // ── Rule 1: Large Cash Transaction (> $10,000) ────────────────────────
+  
   if (amount > 10000) {
     flags.push({
       rule: 'LARGE_CASH',
@@ -20,7 +20,7 @@ export const analyzeTransaction = async (transaction) => {
     });
   }
 
-  // ── Rule 2: Structuring (many transactions totaling just under $10k) ──
+  
   const last24h = await query(
     `SELECT SUM(amount) AS total FROM transactions
      WHERE account_id = @accountId AND type IN ('Debit','Withdrawal')
@@ -36,7 +36,7 @@ export const analyzeTransaction = async (transaction) => {
     });
   }
 
-  // ── Rule 3: High Velocity (> 5 transactions in last hour) ────────────
+  
   const hourly = await query(
     `SELECT COUNT(*) AS cnt FROM transactions
      WHERE account_id = @accountId
@@ -52,7 +52,7 @@ export const analyzeTransaction = async (transaction) => {
     });
   }
 
-  // ── Rule 4: Geographic Anomaly ────────────────────────────────────────
+  
   if (country) {
     const usual = await query(
       `SELECT TOP 1 country FROM transactions
@@ -70,7 +70,7 @@ export const analyzeTransaction = async (transaction) => {
     }
   }
 
-  // ── Persist flags and auto-escalate ──────────────────────────────────
+  
   if (flags.length > 0) {
     for (const flag of flags) {
       await query(
@@ -80,7 +80,7 @@ export const analyzeTransaction = async (transaction) => {
       );
     }
 
-    // Auto-flag the customer account if Critical or multiple flags
+    
     const hasCritical = flags.some(f => f.severity === 'Critical');
     if (hasCritical || flags.length >= 2) {
       await query(
@@ -93,7 +93,7 @@ export const analyzeTransaction = async (transaction) => {
     await auditLogger.log('AML_FLAG', 'transaction', txId, 'aml-engine',
       { rules: flags.map(f => f.rule) });
 
-    // Broadcast real-time alert to all admin portal clients
+    
     await broadcast('AmlAlert', {
       customer_id,
       transaction_id: txId,

@@ -1,13 +1,13 @@
-/**
- * useAuth.js — Custom hooks for Employee and Customer authentication
- * Wraps MSAL to provide login, logout, token acquisition, and role resolution.
- *
- * Employee usage:
- *   const { login, logout, role, employee, getToken, isAuthenticated } = useEmployeeAuth();
- *
- * Customer usage:
- *   const { login, logout, customer, getToken, isAuthenticated } = useCustomerAuth();
- */
+
+
+
+
+
+
+
+
+
+
 
 import { useMsal } from '@azure/msal-react';
 import { jwtDecode } from 'jwt-decode';
@@ -22,7 +22,7 @@ import { useCallback, useState } from 'react';
 
 const isDev = import.meta.env.DEV;
 
-// ── Role resolver ─────────────────────────────────────────────────────────────
+
 const resolveRole = (groups = []) => {
   if (AD_GROUPS.BANK_ADMINS       && groups.includes(AD_GROUPS.BANK_ADMINS))       return 'ADMIN';
   if (AD_GROUPS.SECURITY_AUDITORS && groups.includes(AD_GROUPS.SECURITY_AUDITORS)) return 'AUDITOR';
@@ -31,7 +31,7 @@ const resolveRole = (groups = []) => {
   return null;
 };
 
-// Helper to clear stuck MSAL interaction states to prevent "interaction_in_progress" errors
+
 const clearMsalKeys = () => {
   [sessionStorage, localStorage].forEach(storage => {
     try {
@@ -42,17 +42,17 @@ const clearMsalKeys = () => {
         }
       });
     } catch {
-      // Ignore storage access errors
+      void 0;
     }
   });
 };
 
-// ── Employee auth ─────────────────────────────────────────────────────────────
+
 export const useEmployeeAuth = () => {
   const { instance, accounts } = useMsal();
   const account = accounts[0];
 
-  // Decode the idToken to extract groups and profile
+  
   const employee = account ? (() => {
     const decoded = jwtDecode(account.idToken || '{}');
     const groups  = decoded.groups || [];
@@ -65,7 +65,7 @@ export const useEmployeeAuth = () => {
     };
   })() : null;
 
-  // Acquires access token silently (from cache or refresh token)
+  
   const getToken = useCallback(async () => {
     if (isDev) return 'dev-mock-token-admin';
     try {
@@ -92,7 +92,7 @@ export const useEmployeeAuth = () => {
     await instance.logoutRedirect({ account });
   }, [instance, account]);
 
-  // ── In dev mode, skip real MSAL entirely ──────────────────────────────────
+  
   if (isDev && !account) {
     return {
       isAuthenticated: false,
@@ -102,7 +102,7 @@ export const useEmployeeAuth = () => {
         role: 'ADMIN',
       },
       role: 'ADMIN',
-      login:    async () => {},   // login handled by Login component
+      login:    async () => {},   
       logout:   async () => {},
       getToken: async () => 'dev-mock-token-admin',
     };
@@ -118,7 +118,7 @@ export const useEmployeeAuth = () => {
   };
 };
 
-// ── Mock customer profiles (DEV mode only) ────────────────────────────────────
+
 export const MOCK_CUSTOMERS = [
   { id: 'CUS-1001', name: 'Walter White',   email: 'walter@mohdgulman87outlook.onmicrosoft.com' },
   { id: 'CUS-1002', name: 'Jesse Pinkman',  email: 'jesse@mohdgulman87outlook.onmicrosoft.com' },
@@ -126,11 +126,11 @@ export const MOCK_CUSTOMERS = [
   { id: 'CUS-1004', name: 'Jane Margolis',  email: 'jane@mohdgulman87outlook.onmicrosoft.com' },
 ];
 
-// ── Customer auth ─────────────────────────────────────────────────────────────
+
 export const useCustomerAuth = () => {
   const { instance, accounts } = useMsal();
 
-  // In DEV mode, customer auth is fully mocked — no real MSAL
+  
   const [devCustomer, setDevCustomer] = useState(() => {
     const stored = sessionStorage.getItem('dev_customer_id');
     return MOCK_CUSTOMERS.find(c => c.id === stored) || null;
@@ -164,7 +164,7 @@ export const useCustomerAuth = () => {
     };
   }
 
-  // Production: use real MSAL account (customer logs in with customerLoginRequest)
+  
   const account = accounts[0];
   const customer = account ? {
     name:  account.name,

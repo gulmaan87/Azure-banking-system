@@ -1,6 +1,3 @@
-###############################################################################
-# modules/keyvault/variables.tf
-###############################################################################
 
 variable "name" {
   description = "Key Vault name (3–24 chars, alphanumeric + hyphens)."

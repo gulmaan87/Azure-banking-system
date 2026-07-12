@@ -17,7 +17,6 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-# Trim potential single/double quotes from arguments passed via command-line
 $PublicIp      = $PublicIp.Trim("'`"")
 $StorageAccount = $StorageAccount.Trim("'`"")
 $ResourceGroup  = $ResourceGroup.Trim("'`"")
@@ -33,9 +32,6 @@ Write-Host "Storage Account:   $StorageAccount" -ForegroundColor DarkCyan
 Write-Host "Resource Group:    $ResourceGroup"  -ForegroundColor DarkCyan
 Write-Host "VM Name:           $VmName"         -ForegroundColor DarkCyan
 
-# -----------------------------------------------------------------------------
-# 1. Update Portal environment variables (.env)
-# -----------------------------------------------------------------------------
 Write-Host "`nStep 1: Writing portal configuration (.env)..." -ForegroundColor Yellow
 $portalDir = Resolve-Path (Join-Path $PSScriptRoot "../portal")
 $envPath   = Join-Path $portalDir ".env"
@@ -52,9 +48,6 @@ VITE_GROUP_DATA_ENGINEERS=0684100a-72c0-4c4e-ba03-6c23ad8b055b
 Set-Content -Path $envPath -Value $envContent
 Write-Host "  Wrote portal .env configuration successfully to $envPath" -ForegroundColor Green
 
-# -----------------------------------------------------------------------------
-# 2. Compile React portal bundle
-# -----------------------------------------------------------------------------
 Write-Host "`nStep 2: Installing packages and building React portal..." -ForegroundColor Yellow
 Push-Location $portalDir
 try {
@@ -67,9 +60,6 @@ try {
 }
 Write-Host "  React build compiled successfully." -ForegroundColor Green
 
-# -----------------------------------------------------------------------------
-# 3. Deploy portal to Azure Static Website ($web)
-# -----------------------------------------------------------------------------
 Write-Host "`nStep 3: Deploying React bundle to storage account static site..." -ForegroundColor Yellow
 $distDir = Join-Path $portalDir "dist"
 
@@ -100,18 +90,11 @@ az storage blob upload `
 
 Write-Host "  Static website deployed! URL: https://$StorageAccount.z7.web.core.windows.net" -ForegroundColor Green
 
-# -----------------------------------------------------------------------------
-# 4. Bootstrap Node.js backend API on VM corebank-1
-# -----------------------------------------------------------------------------
 Write-Host "`nStep 4: Bootstrapping and starting backend Node.js API on VM $VmName..." -ForegroundColor Yellow
 
 $serverJsContent = Get-Content -Raw -Path (Join-Path $portalDir "../backend/src/server.js")
 
-# Build the bash script, injecting PowerShell variables where needed.
-# We use a double-quoted here-string (@"..."@) so PowerShell expands $StorageAccount
-# and $Fqdn. Bash variables inside (like $APP_DIR) are escaped with backtick.
 $bashScript = @"
-#!/bin/bash
 set -e
 
 echo "============================================="

@@ -6,7 +6,7 @@ import { query } from '../db/connection.js';
 const router = Router();
 router.use(authMiddleware);
 
-// GET /api/accounts/customer/:customerId — Customer self or All staff roles
+
 router.get('/customer/:customerId', requireSelfOrStaff(['ADMIN','AUDITOR','DEVELOPER','DATA']), async (req, res, next) => {
   try {
     const result = await query(
@@ -17,7 +17,7 @@ router.get('/customer/:customerId', requireSelfOrStaff(['ADMIN','AUDITOR','DEVEL
   } catch (err) { next(err); }
 });
 
-// POST /api/accounts — Admin only (open additional account for customer)
+
 router.post('/', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const { customer_id, account_type, currency } = req.body;

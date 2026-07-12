@@ -1,7 +1,7 @@
-/**
- * audit.js — REST route to query the SQL audit_log table
- * Admin-only — returns paginated audit records for the portal
- */
+
+
+
+
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
@@ -10,8 +10,8 @@ import { query } from '../db/connection.js';
 const router = Router();
 router.use(authMiddleware);
 
-// GET /api/audit — returns paginated audit records
-// Admins + Auditors can view; Data Engineers cannot
+
+
 router.get('/', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const limit  = Math.min(parseInt(req.query.limit)  || 100, 500);

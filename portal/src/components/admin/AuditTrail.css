@@ -1,4 +1,4 @@
-/* AuditTrail.css — Audit log table styling */
+
 
 .audit-trail {
   display: flex;
@@ -64,7 +64,7 @@
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Filters ── */
+
 .audit-filters {
   display: flex;
   align-items: center;
@@ -110,7 +110,7 @@
 .filter-tab:hover  { color: var(--primary); border-color: var(--primary); }
 .filter-tab.active { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.4); }
 
-/* ── Stats Bar ── */
+
 .audit-stats {
   display: flex;
   gap: 20px;
@@ -127,7 +127,7 @@
 .stat.aml  { color: #ef4444; }
 .stat.warn { color: #f59e0b; }
 
-/* ── Table ── */
+
 .audit-error {
   display: flex;
   align-items: center;
@@ -231,7 +231,7 @@
   color: #a5f3fc;
 }
 
-/* ── Pagination ── */
+
 .pagination {
   display: flex;
   align-items: center;

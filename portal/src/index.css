@@ -33,13 +33,13 @@ body {
     radial-gradient(circle at 50% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
 }
 
-/* Typography */
+
 h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
-/* Glassmorphism Utilities */
+
 .glass {
   background: var(--bg-card);
   backdrop-filter: blur(16px);
@@ -64,7 +64,7 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
 }
 
-/* Layout */
+
 .app-container {
   display: flex;
   height: 100vh;
@@ -91,7 +91,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 32px 40px;
 }
 
-/* Components */
+
 .brand {
   display: flex;
   align-items: center;
@@ -403,7 +403,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 24px;
 }
 
-/* Animations */
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -423,7 +423,7 @@ h1, h2, h3, h4, h5, h6 {
 .delay-2 { animation-delay: 0.2s; }
 .delay-3 { animation-delay: 0.3s; }
 
-/* Custom Scrollbar */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -462,14 +462,14 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Transfer button hover effect */
+
 .transfer-btn:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
   box-shadow: 0 8px 24px var(--primary-glow);
 }
 
-/* Number inputs — hide spinners for cleaner look */
+
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -477,7 +477,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 input[type=number] { -moz-appearance: textfield; }
 
-/* Select element dark styling */
+
 select option {
   background: #1a1f2c;
   color: var(--text-main);

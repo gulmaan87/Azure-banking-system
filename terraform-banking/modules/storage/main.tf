@@ -1,9 +1,3 @@
-###############################################################################
-# modules/storage/main.tf – Shared Storage Account
-#
-# Name constraints: 3-24 chars, lowercase alphanumeric only
-# "mohdgbankingdev" = 15 chars – valid
-###############################################################################
 
 resource "azurerm_storage_account" "this" {
   name                     = var.name
@@ -12,7 +6,6 @@ resource "azurerm_storage_account" "this" {
   account_tier             = var.account_tier
   account_replication_type = var.replication_type
 
-  # Security hardening
   https_traffic_only_enabled       = true
   min_tls_version                  = "TLS1_2"
   allow_nested_items_to_be_public  = false

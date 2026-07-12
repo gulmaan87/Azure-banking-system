@@ -1,8 +1,3 @@
-###############################################################################
-# modules/keyvault/main.tf – Azure Key Vault with access policy
-#
-# KV name: mohdg-banking-kv-dev  (max 24 chars – valid at 20)
-###############################################################################
 
 resource "azurerm_key_vault" "this" {
   name                        = var.name
@@ -13,7 +8,6 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days  = var.soft_delete_retention_days
   purge_protection_enabled    = true  # Mandatory for banking compliance
 
-  # Access policies – grant the deploying principal full control
   access_policy {
     tenant_id = var.tenant_id
     object_id = var.object_id

@@ -1,8 +1,4 @@
-###############################################################################
-# bastion.tf – Azure Bastion for Secure VM Access
-###############################################################################
 
-# 1. Public IP for Bastion
 resource "azurerm_public_ip" "bastion" {
   count = var.enable_bastion ? 1 : 0
 
@@ -14,7 +10,6 @@ resource "azurerm_public_ip" "bastion" {
   tags                = local.common_tags
 }
 
-# 2. Bastion Host
 resource "azurerm_bastion_host" "this" {
   count = var.enable_bastion ? 1 : 0
 

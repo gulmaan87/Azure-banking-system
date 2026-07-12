@@ -1,9 +1,3 @@
-###############################################################################
-# modules/subnet/main.tf – Creates one subnet per entry in var.subnets
-#                          and associates the shared NSG
-#
-# Subnet naming: <prefix>-banking-subnet-<name>-<env>
-###############################################################################
 
 resource "azurerm_subnet" "this" {
   for_each = var.subnets
@@ -14,7 +8,6 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [each.value]
 }
 
-# Associate each subnet with the shared NSG (or custom NSG if overridden)
 resource "azurerm_subnet_network_security_group_association" "this" {
   for_each = var.subnets
 

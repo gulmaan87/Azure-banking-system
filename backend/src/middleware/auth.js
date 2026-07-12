@@ -5,7 +5,7 @@ import { query } from '../db/connection.js';
 const TENANT_ID  = process.env.AZURE_TENANT_ID;
 const CLIENT_ID  = process.env.AZURE_CLIENT_ID;
 
-// Azure AD JWKS endpoint — validates token signatures
+
 const client = jwksClient({
   jwksUri: `https://login.microsoftonline.com/${TENANT_ID}/discovery/v2.0/keys`,
   cache: true,
@@ -19,11 +19,11 @@ const getSigningKey = (header, callback) => {
   });
 };
 
-/**
- * verifyToken middleware
- * Validates the Azure AD Bearer JWT on every protected route.
- * Attaches decoded claims to req.user.
- */
+
+
+
+
+
 export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
@@ -32,7 +32,7 @@ export const verifyToken = (req, res, next) => {
 
   const token = authHeader.split(' ')[1];
 
-  // In development/test if mock token matches employee admin bypass
+  
   if (process.env.NODE_ENV === 'development' && token === 'dev-mock-token-admin') {
     req.user = {
       oid: 'mock-oid-walter',
@@ -62,15 +62,15 @@ export const verifyToken = (req, res, next) => {
   );
 };
 
-/**
- * For local development: skip real token verification.
- * Set NODE_ENV=development and use this mock middleware.
- */
+
+
+
+
 export const devMockToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer dev-mock-token-customer-')) {
     const customerId = authHeader.replace('Bearer dev-mock-token-customer-', '').trim();
-    // Determine email/name based on customerId
+    
     let email = 'walter@mohdgulman87outlook.onmicrosoft.com';
     let name = 'Walter White';
     if (customerId === 'CUS-1002') {
@@ -92,7 +92,7 @@ export const devMockToken = (req, res, next) => {
     return next();
   }
 
-  // Default: Walter White employee/admin
+  
   req.user = {
     oid: 'mock-oid-walter',
     upn: 'walter@yourtenant.onmicrosoft.com',
@@ -102,12 +102,12 @@ export const devMockToken = (req, res, next) => {
   next();
 };
 
-/**
- * resolveCustomerIdentity middleware
- * Resolves the authenticated Azure AD claims (oid/sub and email) to a database customer.
- * If not found by oid/sub, attempts email lookup for first-time dynamic mapping.
- * Passes through for employee callers.
- */
+
+
+
+
+
+
 export const resolveCustomerIdentity = async (req, res, next) => {
   const principalId = req.user?.oid || req.user?.sub;
   const email = req.user?.upn || req.user?.preferred_username || req.user?.email;
@@ -117,19 +117,19 @@ export const resolveCustomerIdentity = async (req, res, next) => {
   }
 
   try {
-    // 1. Try to find customer by customer_principal_id
+    
     let result = await query('SELECT * FROM customers WHERE customer_principal_id = @principalId', { principalId });
     if (result.recordset.length > 0) {
       req.customer = result.recordset[0];
       return next();
     }
 
-    // 2. If not found, try to find customer by email to perform dynamic mapping
+    
     if (email) {
       result = await query('SELECT * FROM customers WHERE email = @email', { email });
       if (result.recordset.length > 0) {
         const customer = result.recordset[0];
-        // Perform dynamic mapping
+        
         await query('UPDATE customers SET customer_principal_id = @principalId, updated_at = GETUTCDATE() WHERE id = @id', {
           principalId,
           id: customer.id
@@ -141,7 +141,7 @@ export const resolveCustomerIdentity = async (req, res, next) => {
       }
     }
 
-    // 3. Fallback: check if caller is an employee/staff
+    
     const userGroups = req.user?.groups || [];
     const hasStaffRole = userGroups.some(group => 
       group === process.env.AZURE_GROUP_BANK_ADMINS ||
@@ -154,7 +154,7 @@ export const resolveCustomerIdentity = async (req, res, next) => {
       return next();
     }
 
-    // Otherwise, unauthorized customer context
+    
     return res.status(403).json({ error: 'Access denied: unrecognized account or role context' });
   } catch (err) {
     console.error('[Auth] Error resolving customer identity:', err);
@@ -162,6 +162,6 @@ export const resolveCustomerIdentity = async (req, res, next) => {
   }
 };
 
-// Export the right entry point middleware based on environment
+
 const baseVerify = process.env.NODE_ENV === 'development' ? devMockToken : verifyToken;
 export const authMiddleware = [baseVerify, resolveCustomerIdentity];

@@ -1,14 +1,14 @@
-/**
- * kyc.js — KYC document upload and review routes
- *
- * POST /api/kyc/:customerId/upload   — multipart upload (3 files max)
- * GET  /api/kyc/pending              — all pending submissions with SAS URLs
- * GET  /api/kyc/:submissionId        — single submission with SAS URLs
- * PATCH /api/kyc/:submissionId/approve
- * PATCH /api/kyc/:submissionId/reject
- * GET  /api/kyc/aml/:customerId
- * PATCH /api/kyc/aml/:flagId/resolve
- */
+
+
+
+
+
+
+
+
+
+
+
 
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
@@ -20,13 +20,13 @@ import * as AmlService   from '../services/AmlService.js';
 const router = Router();
 router.use(authMiddleware);
 
-// ── Document Upload ──────────────────────────────────────────────────────────
 
-/**
- * POST /api/kyc/:customerId/upload
- * Accepts up to 3 files with field names: passport, utility_bill, selfie
- * Content-Type: multipart/form-data
- */
+
+
+
+
+
+
 router.post(
   '/:customerId/upload',
   requireRole(['ADMIN']),
@@ -56,11 +56,11 @@ router.post(
   }
 );
 
-// ── Legacy JSON submit (for dev/testing without file upload) ─────────────────
+
 router.post('/:customerId/submit', requireRole(['ADMIN']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
-    // Convert JSON body to mock file array for backward compatibility
+    
     const mockFiles = Object.entries(req.body.documents || {}).map(([fieldname, url]) => ({
       fieldname,
       buffer: Buffer.from('mock'),
@@ -73,9 +73,9 @@ router.post('/:customerId/submit', requireRole(['ADMIN']), async (req, res, next
   } catch (err) { next(err); }
 });
 
-// ── Review Endpoints ─────────────────────────────────────────────────────────
 
-// GET /api/kyc/pending — all pending submissions with 30-min SAS view URLs
+
+
 router.get('/pending', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const data = await KycService.getPendingSubmissions();
@@ -83,7 +83,7 @@ router.get('/pending', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next)
   } catch (err) { next(err); }
 });
 
-// GET /api/kyc/:submissionId — single submission detail
+
 router.get('/:submissionId', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const data = await KycService.getSubmission(req.params.submissionId);
@@ -91,7 +91,7 @@ router.get('/:submissionId', requireRole(['ADMIN', 'AUDITOR']), async (req, res,
   } catch (err) { next(err); }
 });
 
-// PATCH /api/kyc/:submissionId/approve
+
 router.patch('/:submissionId/approve', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
@@ -106,7 +106,7 @@ router.patch('/:submissionId/approve', requireRole(['ADMIN', 'AUDITOR']), async 
   } catch (err) { next(err); }
 });
 
-// PATCH /api/kyc/:submissionId/reject
+
 router.patch('/:submissionId/reject', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;
@@ -122,9 +122,9 @@ router.patch('/:submissionId/reject', requireRole(['ADMIN', 'AUDITOR']), async (
   } catch (err) { next(err); }
 });
 
-// ── AML Flag Management ──────────────────────────────────────────────────────
 
-// GET /api/kyc/aml/:customerId — active AML flags for a customer
+
+
 router.get('/aml/:customerId', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const data = await AmlService.getActiveFlags(req.params.customerId);
@@ -132,7 +132,7 @@ router.get('/aml/:customerId', requireRole(['ADMIN', 'AUDITOR']), async (req, re
   } catch (err) { next(err); }
 });
 
-// PATCH /api/kyc/aml/:flagId/resolve — resolve an AML flag
+
 router.patch('/aml/:flagId/resolve', requireRole(['ADMIN', 'AUDITOR']), async (req, res, next) => {
   try {
     const performedBy = req.user.upn || req.user.preferred_username;

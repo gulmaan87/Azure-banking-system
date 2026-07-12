@@ -1,6 +1,3 @@
-###############################################################################
-# signalr.tf – Azure SignalR Service for real-time AML alerts & live data
-###############################################################################
 
 resource "azurerm_signalr_service" "banking" {
   name                = "${local.name_prefix}-signalr-${var.env}"
@@ -13,8 +10,6 @@ resource "azurerm_signalr_service" "banking" {
     capacity = 1
   }
 
-  # "Default" mode: clients connect through the SignalR service
-  # Backend calls REST API to broadcast — no persistent WS from backend needed
   service_mode = "Serverless"
 
   cors {
@@ -33,10 +28,6 @@ resource "azurerm_signalr_service" "banking" {
   }
 }
 
-###############################################################################
-# Grant corebank-1 VM Managed Identity → SignalR App Server role
-# This allows the backend API to broadcast messages without a connection string
-###############################################################################
 
 resource "azurerm_role_assignment" "corebank_signalr" {
   for_each = {
@@ -49,9 +40,6 @@ resource "azurerm_role_assignment" "corebank_signalr" {
   principal_id         = each.value
 }
 
-###############################################################################
-# Store SignalR connection string in Key Vault
-###############################################################################
 
 resource "azurerm_key_vault_secret" "signalr_connection_string" {
   name         = "signalr-connection-string"
@@ -62,9 +50,6 @@ resource "azurerm_key_vault_secret" "signalr_connection_string" {
   depends_on = [azurerm_key_vault.this]
 }
 
-###############################################################################
-# Outputs
-###############################################################################
 
 output "signalr_hostname" {
   value       = azurerm_signalr_service.banking.hostname

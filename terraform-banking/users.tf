@@ -1,16 +1,4 @@
-###############################################################################
-# users.tf – 8 Banking System Users (Enterprise/Breaking Bad Theme)
-#
-# Departments:
-#   Bank Admins       → 2 users (IT leadership)
-#   Security Auditors → 2 users (Compliance & Risk)
-#   App Developers    → 2 users (Engineering)
-#   Data Engineers    → 2 users (Data & Analytics)
-#
-# Note: Azure AD requires passwords do NOT contain the username/display name.
-###############################################################################
 
-# Fetch the Azure AD domain for user UPNs
 data "azuread_domains" "current" {
   only_initial = true
 }
@@ -19,9 +7,6 @@ locals {
   domain = data.azuread_domains.current.domains[0].domain_name
 }
 
-###############################################################################
-# BANK ADMINISTRATORS (2 users)
-###############################################################################
 
 resource "azuread_user" "admin_mohdg_gulmaan" {
   user_principal_name   = "mohdg_gulmaan@${local.domain}"
@@ -53,9 +38,6 @@ resource "azuread_group_member" "admin_walter_member" {
   member_object_id = azuread_user.admin_walter.object_id
 }
 
-###############################################################################
-# SECURITY AUDITORS (2 users)
-###############################################################################
 
 resource "azuread_user" "auditor_saul" {
   user_principal_name   = "saul@${local.domain}"
@@ -87,9 +69,6 @@ resource "azuread_group_member" "auditor_skyler_member" {
   member_object_id = azuread_user.auditor_skyler.object_id
 }
 
-###############################################################################
-# APPLICATION DEVELOPERS (2 users)
-###############################################################################
 
 resource "azuread_user" "dev_jesse" {
   user_principal_name   = "jesse@${local.domain}"
@@ -121,9 +100,6 @@ resource "azuread_group_member" "dev_hank_member" {
   member_object_id = azuread_user.dev_hank.object_id
 }
 
-###############################################################################
-# DATA ENGINEERS (2 users)
-###############################################################################
 
 resource "azuread_user" "data_gustavo" {
   user_principal_name   = "gustavo@${local.domain}"
